@@ -14,6 +14,7 @@ class DataReq:
     power_req = None
     fetched_count = 0
     total_to_fetch = 0
+    temp_log_fetch_curr = 0
     def get_cookie(self):
         if self.cookie is None:
             url = 'https://www.carwale.com' + "/used"
@@ -138,9 +139,8 @@ class DataReq:
         return ['2', '5', '8']
 
     def fetch_car_specs(self, model):
+        rtn = None
         try:
-            self.fetched_count += 1
-            print("Fetching {} out of {}".format(self.fetched_count, self.total_to_fetch))
             url = 'https://www.carwale.com' + model['url']
             response = requests.get(url, headers=self.get_headers(False))
             if response.status_code != 200:
@@ -184,11 +184,16 @@ class DataReq:
                     and (self.power_req is None or
                          (self.power_req is not None and 'power' in model.keys() and int(model['power']) >= int(
                              self.power_req))):
-                return model
+                rtn = model
         except:
             traceback.print_exc()
         # return model
-        return None
+        self.fetched_count += 1
+        self.temp_log_fetch_curr += 1
+        if self.temp_log_fetch_curr * 100 / self.total_to_fetch > 1:
+            print("Fetched {}%".format(self.fetched_count * 100 // self.total_to_fetch, self.total_to_fetch))
+            self.temp_log_fetch_curr = 0
+        return rtn
 
     def fetch_car_info(self, sorted_models, finance_req=False):
         print("Fetching car infos")
@@ -197,7 +202,7 @@ class DataReq:
                            and (not finance_req or (finance_req and x['isEligibleForFinance']))]
         self.total_to_fetch = len(filtered_models)
         print("Eligible cars: " + str(len(filtered_models)))
-        with ThreadPoolExecutor(max_workers=50) as exe:
+        with ThreadPoolExecutor(max_workers=30) as exe:
             result = exe.map(self.fetch_car_specs, filtered_models)
             exe.shutdown()
             top_n = [r for r in result if r is not None]

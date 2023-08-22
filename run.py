@@ -33,7 +33,7 @@ sorted_models = sorted(models, key=lambda d: int(d['priceNumeric']))
 data_req_obj.max_price = max_price * 100000
 data_req_obj.door = None
 data_req_obj.power_req = min_power
-top_n_cars = data_req_obj.fetch_car_info(sorted_models, finance_req=True)
+top_n_cars = data_req_obj.fetch_car_info(sorted_models, finance_req=False)
 response = [data_req_obj.car_info(x) for x in top_n_cars]
 
 response_sorted = sorted(response, key=cmp_to_key(compare))
