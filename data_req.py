@@ -4,11 +4,16 @@ import requests
 import json
 import re
 import traceback
+from concurrent.futures import ThreadPoolExecutor
 
 
 class DataReq:
     cookie = None
-
+    max_price = None
+    door = None
+    power_req = None
+    fetched_count = 0
+    total_to_fetch = 0
     def get_cookie(self):
         if self.cookie is None:
             url = 'https://www.carwale.com' + "/used"
@@ -132,25 +137,14 @@ class DataReq:
     def get_body_types(self):
         return ['2', '5', '8']
 
-    def fetch_car_specs(self, model, door, power_req):
+    def fetch_car_specs(self, model):
+        self.fetched_count += 1
+        print("Fetching {} out of {}".format(self.fetched_count, self.total_to_fetch))
         url = 'https://www.carwale.com' + model['url']
         response = requests.get(url, headers=self.get_headers(False))
         if response.status_code != 200:
             print("Fetching URL failed: " + url)
             return None
-
-        # class MyHTMLParser(HTMLParser):
-        #     def handle_starttag(self, tag, attrs):
-        #         print("Encountered a start tag:", tag)
-        #
-        #     def handle_endtag(self, tag):
-        #         print("Encountered an end tag :", tag)
-        #
-        #     def handle_data(self, data):
-        #         print("Encountered some data  :", data)
-        #
-        # parser = MyHTMLParser()
-        # parser.feed(response.text)
 
         try:
             from BeautifulSoup import BeautifulSoup
@@ -184,28 +178,35 @@ class DataReq:
             model['power'] = 0
         if 'torque' not in model.keys():
             model['torque'] = 0
-        if (door is None or (door is not None and 'doors' in model.keys() and str(door) not in model['doors'])) \
-                and (power_req is None or
-                     (power_req is not None and 'power' in model.keys() and int(model['power']) >= int(power_req))):
+        if (self.door is None or (
+                self.door is not None and 'self.doors' in model.keys() and str(self.door) not in model['self.doors'])) \
+                and (self.power_req is None or
+                     (self.power_req is not None and 'power' in model.keys() and int(model['power']) >= int(
+                         self.power_req))):
             return model
 
         # return model
         return None
 
-    def fetch_car_info(self, sorted_models, max_price=None, door=None, power=None):
+    def fetch_car_info(self, sorted_models, finance_req=False):
         print("Fetching car infos")
-        top_n = []
-        filtered_models = [x for x in sorted_models if max_price is None or int(x['priceNumeric']) < max_price]
+        filtered_models = [x for x in sorted_models if
+                           (self.max_price is None or int(x['priceNumeric']) < self.max_price)
+                           and (not finance_req or (finance_req and x['isEligibleForFinance']))]
+        self.total_to_fetch = len(filtered_models)
         print("Eligible cars: " + str(len(filtered_models)))
-        count = 1
-        for model in filtered_models:
-            print('{} of {}, price {}'.format(count, len(filtered_models), model['priceNumeric']))
-            count += 1
-            # print(str(model['priceNumeric']) + " <= " + str(max_price))
-            model_details = self.fetch_car_specs(model, door, power)
-            if model_details is not None:
-                print(json.dumps(self.car_info(model_details), indent=2))
-                top_n.append(model_details)
+        with ThreadPoolExecutor(max_workers=12) as exe:
+            result = exe.map(self.fetch_car_specs, filtered_models)
+            exe.shutdown()
+            top_n = [r for r in result if r is not None]
+        # for model in filtered_models:
+        #     print('{} of {}, price {}'.format(count, len(filtered_models), model['priceNumeric']))
+        #     count += 1
+        #     # print(str(model['priceNumeric']) + " <= " + str(max_price))
+        #     model_details = self.fetch_car_specs(model)
+        #     if model_details is not None:
+        #         print(json.dumps(self.car_info(model_details), indent=2))
+        #         top_n.append(model_details)
         return top_n
 
     def get_popular_cities(self, city_name=None):
