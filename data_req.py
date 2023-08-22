@@ -138,53 +138,55 @@ class DataReq:
         return ['2', '5', '8']
 
     def fetch_car_specs(self, model):
-        self.fetched_count += 1
-        print("Fetching {} out of {}".format(self.fetched_count, self.total_to_fetch))
-        url = 'https://www.carwale.com' + model['url']
-        response = requests.get(url, headers=self.get_headers(False))
-        if response.status_code != 200:
-            print("Fetching URL failed: " + url)
-            return None
-
         try:
-            from BeautifulSoup import BeautifulSoup
-        except ImportError:
-            from bs4 import BeautifulSoup
-        parsed_html = BeautifulSoup(response.text, 'html.parser')
-        property_wrapper_tags = parsed_html.find_all('div', class_='property-wrapper')
-        for property_wrapper_tag in property_wrapper_tags:
-            prop_str_raw = property_wrapper_tag.get_text()
-            prop_str = re.sub(r"\s{2,}", ":", prop_str_raw.strip())
-            prop_key_map = prop_str.split(':')
-            if len(prop_key_map) >= 2:
-                model[str(prop_key_map[0]).lower()] = prop_key_map[1]
-        if 'max power (bhp@rpm)' in model.keys():
-            try:
-                power_str = model['max power (bhp@rpm)']
-                power_split = power_str.split("@")
-                power = str(power_split[0]).strip().split(" ")[0]
-                model['power'] = power
-            except:
-                x = 1
-        if 'max torque (nm@rpm)' in model.keys():
-            try:
-                torque_str = model['max torque (nm@rpm)']
-                torque_split = torque_str.split("@")
-                torque = str(torque_split[0]).strip().split(" ")[0]
-                model['torque'] = torque
-            except:
-                x = 1
-        if 'power' not in model.keys():
-            model['power'] = 0
-        if 'torque' not in model.keys():
-            model['torque'] = 0
-        if (self.door is None or (
-                self.door is not None and 'self.doors' in model.keys() and str(self.door) not in model['self.doors'])) \
-                and (self.power_req is None or
-                     (self.power_req is not None and 'power' in model.keys() and int(model['power']) >= int(
-                         self.power_req))):
-            return model
+            self.fetched_count += 1
+            print("Fetching {} out of {}".format(self.fetched_count, self.total_to_fetch))
+            url = 'https://www.carwale.com' + model['url']
+            response = requests.get(url, headers=self.get_headers(False))
+            if response.status_code != 200:
+                print("Fetching URL failed: " + url)
+                return None
 
+            try:
+                from BeautifulSoup import BeautifulSoup
+            except ImportError:
+                from bs4 import BeautifulSoup
+            parsed_html = BeautifulSoup(response.text, 'html.parser')
+            property_wrapper_tags = parsed_html.find_all('div', class_='property-wrapper')
+            for property_wrapper_tag in property_wrapper_tags:
+                prop_str_raw = property_wrapper_tag.get_text()
+                prop_str = re.sub(r"\s{2,}", ":", prop_str_raw.strip())
+                prop_key_map = prop_str.split(':')
+                if len(prop_key_map) >= 2:
+                    model[str(prop_key_map[0]).lower()] = prop_key_map[1]
+            if 'max power (bhp@rpm)' in model.keys():
+                try:
+                    power_str = model['max power (bhp@rpm)']
+                    power_split = power_str.split("@")
+                    power = str(power_split[0]).strip().split(" ")[0]
+                    model['power'] = power
+                except:
+                    x = 1
+            if 'max torque (nm@rpm)' in model.keys():
+                try:
+                    torque_str = model['max torque (nm@rpm)']
+                    torque_split = torque_str.split("@")
+                    torque = str(torque_split[0]).strip().split(" ")[0]
+                    model['torque'] = torque
+                except:
+                    x = 1
+            if 'power' not in model.keys():
+                model['power'] = 0
+            if 'torque' not in model.keys():
+                model['torque'] = 0
+            if (self.door is None or (
+                    self.door is not None and 'self.doors' in model.keys() and str(self.door) not in model['self.doors'])) \
+                    and (self.power_req is None or
+                         (self.power_req is not None and 'power' in model.keys() and int(model['power']) >= int(
+                             self.power_req))):
+                return model
+        except:
+            traceback.print_exc()
         # return model
         return None
 
@@ -195,7 +197,7 @@ class DataReq:
                            and (not finance_req or (finance_req and x['isEligibleForFinance']))]
         self.total_to_fetch = len(filtered_models)
         print("Eligible cars: " + str(len(filtered_models)))
-        with ThreadPoolExecutor(max_workers=12) as exe:
+        with ThreadPoolExecutor(max_workers=50) as exe:
             result = exe.map(self.fetch_car_specs, filtered_models)
             exe.shutdown()
             top_n = [r for r in result if r is not None]

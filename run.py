@@ -25,7 +25,7 @@ def compare(o1, o2):
 
 
 # body_types = data_req_obj.get_body_types()
-popular_cities = data_req_obj.get_popular_cities('Mumbai')
+popular_cities = data_req_obj.get_popular_cities()
 make_list = data_req_obj.get_make_list('audi, bmw, mercedes-benz, jaguar, land rover, porsche, mini')
 models = data_req_obj.fetch_models(body_types=None, cities=popular_cities, makes=make_list,
                                    budget=budget_str, year=year)
