@@ -73,6 +73,12 @@ class DataReq:
         return data
 
     def fetch_models(self, body_types=None, cities=None, makes=None, budget=None, year=None):
+        print("body_types: {}".format(body_types))
+        print("cities: {}".format(", ".join([city['cityName'] for city in cities])))
+        print("makes: {}".format(", ".join([make['makeName'] for make in makes])))
+        print("budget: {}".format(budget))
+        print("age: {}".format(year))
+        print()
         if cities is None:
             cities = ['1']
         fetched = []
@@ -163,7 +169,7 @@ class DataReq:
                 try:
                     power_str = model['max power (bhp@rpm)']
                     power_split = power_str.split("@")
-                    power = str(power_split[0]).strip().split(" ")[0]
+                    power = int(str(power_split[0]).strip().split(" ")[0])
                     model['power'] = power
                 except:
                     x = 1
@@ -171,7 +177,7 @@ class DataReq:
                 try:
                     torque_str = model['max torque (nm@rpm)']
                     torque_split = torque_str.split("@")
-                    torque = str(torque_split[0]).strip().split(" ")[0]
+                    torque = int(str(torque_split[0]).strip().split(" ")[0])
                     model['torque'] = torque
                 except:
                     x = 1
@@ -182,8 +188,8 @@ class DataReq:
             if (self.door is None or (
                     self.door is not None and 'self.doors' in model.keys() and str(self.door) not in model['self.doors'])) \
                     and (self.power_req is None or
-                         (self.power_req is not None and 'power' in model.keys() and int(model['power']) >= int(
-                             self.power_req))):
+                         (self.power_req is not None and 'power' in model.keys() and
+                          (int(model['power']) == 0 or int(model['power']) >= int(self.power_req)))):
                 rtn = model
         except:
             traceback.print_exc()
@@ -201,7 +207,7 @@ class DataReq:
                            (self.max_price is None or int(x['priceNumeric']) < self.max_price)
                            and (not finance_req or (finance_req and x['isEligibleForFinance']))]
         self.total_to_fetch = len(filtered_models)
-        print("Eligible cars: " + str(len(filtered_models)))
+        print("Eligible cars: {} of {}".format(len(filtered_models), len(sorted_models)))
         with ThreadPoolExecutor(max_workers=30) as exe:
             result = exe.map(self.fetch_car_specs, filtered_models)
             exe.shutdown()
