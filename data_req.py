@@ -201,9 +201,11 @@ class DataReq:
             self.temp_log_fetch_curr = 0
         return rtn
 
-    def fetch_car_info(self, sorted_models, finance_req=False):
+    def fetch_car_info(self, sorted_models, search_terms=None, finance_req=False):
         print("Fetching car infos")
-        filtered_models = [x for x in sorted_models if
+        search_filter = [x for x in sorted_models if search_terms is None
+                         or sum([1 if str(y).strip().upper() in str(x['carName']).upper() else 0 for y in search_terms]) > 0]
+        filtered_models = [x for x in search_filter if
                            (self.max_price is None or int(x['priceNumeric']) < self.max_price)
                            and (not finance_req or (finance_req and x['isEligibleForFinance']))]
         self.total_to_fetch = len(filtered_models)
