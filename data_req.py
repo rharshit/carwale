@@ -72,7 +72,7 @@ class DataReq:
             data[keymap.split("=")[0]] = str(keymap.split("=")[1]).replace("+", " ")
         return data
 
-    def fetch_models(self, body_types=None, cities=None, makes=None, budget=None, year=None):
+    def fetch_models(self, dump_values, body_types=None, cities=None, makes=None, budget=None, year=None):
         print("body_types: {}".format(body_types))
         print("cities: {}".format(None if cities is None else ", ".join([city['cityName'] for city in cities])))
         print("makes: {}".format(None if makes is None else ", ".join([make['makeName'] for make in makes])))
@@ -112,7 +112,7 @@ class DataReq:
                 response = requests.post(init_url, headers=self.get_headers(), json=data)
                 if response.status_code == 200:
                     [city_fetch.append(x) for x in json.loads(response.text)['stocks']]
-                    city_fetch = list({v['profileId']: v for v in city_fetch if len(v['stockImages'])}.values())
+                    city_fetch = list({v['profileId']: v for v in city_fetch if dump_values or len(v['stockImages'])}.values())
                     next_url = json.loads(response.text)['nextPageUrl']
                     print("Found {} cars".format(json.loads(response.text)['totalCount']))
                     fetch_num.append(len(city_fetch))
@@ -128,7 +128,7 @@ class DataReq:
                     response = requests.post(init_url, headers=self.get_headers(), json=data)
                     if response.status_code == 200:
                         [city_fetch.append(x) for x in json.loads(response.text)['stocks']]
-                        city_fetch = list({v['profileId']: v for v in city_fetch if len(v['stockImages'])}.values())
+                        city_fetch = list({v['profileId']: v for v in city_fetch if dump_values or len(v['stockImages'])}.values())
                         fetch_num.append(len(city_fetch))
                         next_url = json.loads(response.text)['nextPageUrl']
                     else:
@@ -143,13 +143,14 @@ class DataReq:
         print("Completed")
         for city_data in all_city_fetch.keys():
             [fetched.append(x) for x in all_city_fetch[city_data]]
-        return list({v['profileId']: v for v in fetched if len(v['stockImages'])}.values())
+        return list({v['profileId']: v for v in fetched if dump_values or len(v['stockImages'])}.values())
 
     def get_body_types(self):
         return ['2', '5', '8']
 
     def fetch_car_specs(self, model):
         rtn = None
+        url = None
         try:
             url = 'https://www.carwale.com' + model['url']
             response = requests.get(url, headers=self.get_headers(False))
@@ -195,8 +196,12 @@ class DataReq:
                          (self.power_req is not None and 'power' in model.keys() and
                           (int(model['power']) == 0 or int(model['power']) >= int(self.power_req)))):
                 rtn = model
+                rtn['success'] = True
         except:
-            traceback.print_exc()
+            # traceback.print_exc()
+            rtn = model
+            rtn['success'] = False
+            print("Failed to fetch url: ".format(url))
         # return model
         self.fetched_count += 1
         self.temp_log_fetch_curr += 1
@@ -210,7 +215,7 @@ class DataReq:
         search_filter = [x for x in sorted_models if search_terms is None
                          or sum([1 if str(y).strip().upper() in str(x['carName']).upper() else 0 for y in search_terms]) > 0]
         filtered_models = [x for x in search_filter if
-                           (self.max_price is None or int(x['priceNumeric']) < self.max_price)
+                           (self.max_price is None or int(x['priceNumeric']) <= self.max_price)
                            and (not finance_req or (finance_req and x['isEligibleForFinance']))]
         self.total_to_fetch = len(filtered_models)
         print("Eligible cars: {} of {}".format(len(filtered_models), len(sorted_models)))
@@ -257,13 +262,13 @@ class DataReq:
             traceback.print_exc()
         return makes
 
-    def car_info(self, model):
+    def car_info(self, model, dump_values):
         keys = ["carName", "url", "valuationUrl", "makeYear", "price", "priceNumeric", "km", "kmNumeric", "cityName",
                 "areaName", "isEligibleForFinance", "isPremium", "max power (bhp@rpm)", "max torque (nm@rpm)",
                 "drivetrain", "doors", "engine", "engine type", "fuel type", "power", "torque", "isEligibleForFinance"]
         car = {}
         for key in model.keys():
-            if key.strip().upper() in [x.strip().upper() for x in keys]:
+            if key.strip().upper() in [x.strip().upper() for x in keys] or dump_values:
                 val = model[key]
                 if 'URL' in key.strip().upper():
                     val = 'https://www.carwale.com' + val
