@@ -80,12 +80,12 @@ class DataReq:
         print("age: {}".format(year))
         print()
         if cities is None:
-            cities = ['1']
+            cities = [{'cityId': '1', 'cityName': 'Mumbai'}]
         fetched = []
+        all_city_fetch = {}
         for city in cities:
             print("City " + city['cityName'])
             print("Fetching stock")
-            start = len(fetched)
             init_url = 'https://www.carwale.com/api/stocks/filters/'
             data = {"pn": "1", "kms": "0-", "city": str(city['cityId']), "so": "-1", "sc": "-1"}
             if body_types is not None:
@@ -106,15 +106,16 @@ class DataReq:
             #         "excludestocks": "D3962709 D3919297 D4034539 D4059817 D4051277 D4057575 D3909099 D3736887"}
             next_url = None
             fetch_num = []
+            city_fetch = []
             s = requests.session()
             try:
                 response = requests.post(init_url, headers=self.get_headers(), json=data)
                 if response.status_code == 200:
-                    [fetched.append(x) for x in json.loads(response.text)['stocks']]
-                    fetched = list({v['profileId']: v for v in fetched if len(v['stockImages'])}.values())
+                    [city_fetch.append(x) for x in json.loads(response.text)['stocks']]
+                    city_fetch = list({v['profileId']: v for v in city_fetch if len(v['stockImages'])}.values())
                     next_url = json.loads(response.text)['nextPageUrl']
                     print("Found {} cars".format(json.loads(response.text)['totalCount']))
-                    fetch_num.append(len(fetched))
+                    fetch_num.append(len(city_fetch))
                 else:
                     raise Exception
             except Exception:
@@ -126,9 +127,9 @@ class DataReq:
                     data = self.generate_data(next_url)
                     response = requests.post(init_url, headers=self.get_headers(), json=data)
                     if response.status_code == 200:
-                        [fetched.append(x) for x in json.loads(response.text)['stocks']]
-                        fetched = list({v['profileId']: v for v in fetched if len(v['stockImages'])}.values())
-                        fetch_num.append(len(fetched))
+                        [city_fetch.append(x) for x in json.loads(response.text)['stocks']]
+                        city_fetch = list({v['profileId']: v for v in city_fetch if len(v['stockImages'])}.values())
+                        fetch_num.append(len(city_fetch))
                         next_url = json.loads(response.text)['nextPageUrl']
                     else:
                         raise Exception
@@ -136,9 +137,12 @@ class DataReq:
                     # traceback.print_exc()
                     next_url = None
                 # print(fetch_num)
-            end = len(fetched)
-            print("Fetched stock: " + str(end - start))
+            print("Fetched stock: " + str(len(city_fetch)))
+            all_city_fetch[city['cityName']] = city_fetch
             print()
+        print("Completed")
+        for city_data in all_city_fetch.keys():
+            [fetched.append(x) for x in all_city_fetch[city_data]]
         return list({v['profileId']: v for v in fetched if len(v['stockImages'])}.values())
 
     def get_body_types(self):

@@ -8,8 +8,8 @@ from operator import itemgetter
 
 data_req_obj = data_req.DataReq()
 
-max_price = 1000
-min_price = 0
+max_price = 30
+min_price = 25
 budget_str = str(min_price) + "-" + str(max_price)
 year = "0-"
 min_power = 200
@@ -28,7 +28,7 @@ def compare(o1, o2):
 
 
 # body_types = data_req_obj.get_body_types()
-popular_cities = data_req_obj.get_popular_cities('Mumbai')
+popular_cities = data_req_obj.get_popular_cities()
 make_list = data_req_obj.get_make_list('')
 models = data_req_obj.fetch_models(body_types=None, cities=popular_cities, makes=None,
                                    budget=budget_str, year=year)
