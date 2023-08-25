@@ -201,7 +201,7 @@ class DataReq:
             # traceback.print_exc()
             rtn = model
             rtn['success'] = False
-            print("Failed to fetch url: ".format(url))
+            print("Failed to fetch url: {}".format(url))
         # return model
         self.fetched_count += 1
         self.temp_log_fetch_curr += 1
