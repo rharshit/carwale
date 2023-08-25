@@ -74,8 +74,8 @@ class DataReq:
 
     def fetch_models(self, body_types=None, cities=None, makes=None, budget=None, year=None):
         print("body_types: {}".format(body_types))
-        print("cities: {}".format(", ".join([city['cityName'] for city in cities])))
-        print("makes: {}".format(", ".join([make['makeName'] for make in makes])))
+        print("cities: {}".format(None if cities is None else ", ".join([city['cityName'] for city in cities])))
+        print("makes: {}".format(None if makes is None else ", ".join([make['makeName'] for make in makes])))
         print("budget: {}".format(budget))
         print("age: {}".format(year))
         print()
