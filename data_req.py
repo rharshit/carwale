@@ -163,13 +163,11 @@ class DataReq:
             except ImportError:
                 from bs4 import BeautifulSoup
             parsed_html = BeautifulSoup(response.text, 'html.parser')
-            property_wrapper_tags = parsed_html.find_all('div', class_='property-wrapper')
+            property_wrapper_tags = parsed_html.find_all('ul', class_='o-cpnuEd o-XylGE o-eNbQSA o-bIMsfE o-djSZRV o-GFmfi')
             for property_wrapper_tag in property_wrapper_tags:
-                prop_str_raw = property_wrapper_tag.get_text()
-                prop_str = re.sub(r"\s{2,}", ":", prop_str_raw.strip())
-                prop_key_map = prop_str.split(':')
+                prop_key_map = property_wrapper_tag.find_all('li')
                 if len(prop_key_map) >= 2:
-                    model[str(prop_key_map[0]).lower()] = prop_key_map[1]
+                    model[str(prop_key_map[0].get_text()).lower()] = prop_key_map[1].get_text()
             if 'max power (bhp@rpm)' in model.keys():
                 try:
                     power_str = model['max power (bhp@rpm)']
