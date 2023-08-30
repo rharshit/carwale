@@ -32,7 +32,7 @@ def compare(o1, o2):
 # body_types = data_req_obj.get_body_types()
 popular_cities = data_req_obj.get_popular_cities()
 make_list = data_req_obj.get_make_list('audi')
-models = data_req_obj.fetch_models(data_req_obj.dump_values, body_types=None, cities=popular_cities, makes=None,
+models = data_req_obj.fetch_models(body_types=None, cities=popular_cities, makes=None,
                                    budget=budget_str, year=year)
 sorted_models = sorted(models, key=lambda d: int(d['priceNumeric']))
 data_req_obj.max_price = max_price * 100000
