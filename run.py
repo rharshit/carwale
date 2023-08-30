@@ -1,12 +1,8 @@
-import pprint
-import model_names
-import data
-from functools import cmp_to_key
-import data_req
 import json
-from operator import itemgetter
 import time
+from functools import cmp_to_key
 
+import data_req
 
 start = time.time()
 data_req_obj = data_req.DataReq()

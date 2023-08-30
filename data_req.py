@@ -1,11 +1,9 @@
-import pprint
-
-import requests
 import json
-import re
+import time
 import traceback
 from concurrent.futures import ThreadPoolExecutor
-import time
+
+import requests
 
 
 class DataReq:
