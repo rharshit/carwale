@@ -168,7 +168,7 @@ class DataReq:
 
     def fetch_car_specs(self, model):
         start = time.time()
-        rtn = {"include" : False}
+        rtn = {"include": self.dump_values}
         url = None
         if self.load_offline_values:
             rtn = self.get_offline_model(model)
@@ -182,6 +182,7 @@ class DataReq:
                         model['power'] = 0
                         model['torque'] = 0
                         model['success'] = False
+                        model['include'] = self.dump_values
                         return model
                     else:
                         return None
