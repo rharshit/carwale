@@ -15,6 +15,7 @@ class DataReq:
     fetched_count = 0
     total_to_fetch = 0
     temp_log_fetch_curr = 0
+    dump_values = False
     def get_cookie(self):
         if self.cookie is None:
             url = 'https://www.carwale.com' + "/used"
@@ -72,7 +73,7 @@ class DataReq:
             data[keymap.split("=")[0]] = str(keymap.split("=")[1]).replace("+", " ")
         return data
 
-    def fetch_models(self, dump_values, body_types=None, cities=None, makes=None, budget=None, year=None):
+    def fetch_models(self, body_types=None, cities=None, makes=None, budget=None, year=None):
         print("body_types: {}".format(body_types))
         print("cities: {}".format(None if cities is None else ", ".join([city['cityName'] for city in cities])))
         print("makes: {}".format(None if makes is None else ", ".join([make['makeName'] for make in makes])))
@@ -112,7 +113,7 @@ class DataReq:
                 response = requests.post(init_url, headers=self.get_headers(), json=data)
                 if response.status_code == 200:
                     [city_fetch.append(x) for x in json.loads(response.text)['stocks']]
-                    city_fetch = list({v['profileId']: v for v in city_fetch if dump_values or len(v['stockImages'])}.values())
+                    city_fetch = list({v['profileId']: v for v in city_fetch if self.dump_values or len(v['stockImages'])}.values())
                     next_url = json.loads(response.text)['nextPageUrl']
                     print("Found {} cars".format(json.loads(response.text)['totalCount']))
                     fetch_num.append(len(city_fetch))
@@ -128,7 +129,7 @@ class DataReq:
                     response = requests.post(init_url, headers=self.get_headers(), json=data)
                     if response.status_code == 200:
                         [city_fetch.append(x) for x in json.loads(response.text)['stocks']]
-                        city_fetch = list({v['profileId']: v for v in city_fetch if dump_values or len(v['stockImages'])}.values())
+                        city_fetch = list({v['profileId']: v for v in city_fetch if self.dump_values or len(v['stockImages'])}.values())
                         fetch_num.append(len(city_fetch))
                         next_url = json.loads(response.text)['nextPageUrl']
                     else:
@@ -143,7 +144,7 @@ class DataReq:
         print("Completed")
         for city_data in all_city_fetch.keys():
             [fetched.append(x) for x in all_city_fetch[city_data]]
-        return list({v['profileId']: v for v in fetched if dump_values or len(v['stockImages'])}.values())
+        return list({v['profileId']: v for v in fetched if self.dump_values or len(v['stockImages'])}.values())
 
     def get_body_types(self):
         return ['2', '5', '8']
@@ -155,9 +156,14 @@ class DataReq:
             url = 'https://www.carwale.com' + model['url']
             response = requests.get(url, headers=self.get_headers(False))
             if response.status_code != 200:
-                print("Fetching URL failed: " + url)
-                return None
-
+                print("Fetching URL returned {}: {}".format(response.status_code, url))
+                if self.dump_values:
+                    model['power'] = 0
+                    model['torque'] = 0
+                    model['success'] = False
+                    return model
+                else:
+                    return None
             try:
                 from BeautifulSoup import BeautifulSoup
             except ImportError:
@@ -198,6 +204,8 @@ class DataReq:
         except:
             # traceback.print_exc()
             rtn = model
+            rtn['power'] = 0
+            rtn['torque'] = 0
             rtn['success'] = False
             print("Failed to fetch url: {}".format(url))
         # return model
@@ -210,11 +218,11 @@ class DataReq:
 
     def fetch_car_info(self, sorted_models, search_terms=None, finance_req=False):
         print("Fetching car infos")
-        search_filter = [x for x in sorted_models if search_terms is None
-                         or sum([1 if str(y).strip().upper() in str(x['carName']).upper() else 0 for y in search_terms]) > 0]
-        filtered_models = [x for x in search_filter if
-                           (self.max_price is None or int(x['priceNumeric']) <= self.max_price)
-                           and (not finance_req or (finance_req and x['isEligibleForFinance']))]
+        search_filter = [x for x in sorted_models if self.dump_values or (search_terms is None
+                         or sum([1 if str(y).strip().upper() in str(x['carName']).upper() else 0 for y in search_terms]) > 0)]
+        filtered_models = [x for x in search_filter if self.dump_values or
+                           ((self.max_price is None or int(x['priceNumeric']) <= self.max_price)
+                           and (not finance_req or (finance_req and x['isEligibleForFinance'])))]
         self.total_to_fetch = len(filtered_models)
         print("Eligible cars: {} of {}".format(len(filtered_models), len(sorted_models)))
         with ThreadPoolExecutor(max_workers=30) as exe:
