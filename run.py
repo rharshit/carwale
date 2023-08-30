@@ -5,7 +5,10 @@ from functools import cmp_to_key
 import data_req
 import json
 from operator import itemgetter
+import time
 
+
+start = time.time()
 data_req_obj = data_req.DataReq()
 
 max_price = 999
@@ -16,6 +19,7 @@ min_power = 200
 req_makes = 'skoda, volkswagen, fiat, honda, hyundai, toyota, tata, kia, mg, jeep, mahindra, ford'
 search_terms = ['3.0 tdi', 'amg', 'v6', 'v 6', 'v8', 'v 8', 'v10', 'v 10', 'v12', 'v 12', 'w12', 'w 12']
 data_req_obj.dump_values = True
+data_req_obj.load_offline_values = True
 file_path = 'car_info_all_cities.json'
 
 def compare(o1, o2):
@@ -32,7 +36,7 @@ def compare(o1, o2):
 # body_types = data_req_obj.get_body_types()
 popular_cities = data_req_obj.get_popular_cities()
 make_list = data_req_obj.get_make_list('audi')
-models = data_req_obj.fetch_models(body_types=None, cities=popular_cities, makes=None,
+models = data_req_obj.fetch_models(file_path, body_types=None, cities=popular_cities, makes=None,
                                    budget=budget_str, year=year)
 sorted_models = sorted(models, key=lambda d: int(d['priceNumeric']))
 data_req_obj.max_price = max_price * 100000
@@ -52,3 +56,6 @@ else:
     print("\n" * 20)
     print('Total {} cars'.format(len(response_sorted)))
     print(response_json)
+
+end = time.time()
+print("Total time: {}".format(end-start))

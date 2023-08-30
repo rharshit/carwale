@@ -5,6 +5,7 @@ import json
 import re
 import traceback
 from concurrent.futures import ThreadPoolExecutor
+import time
 
 
 class DataReq:
@@ -16,6 +17,8 @@ class DataReq:
     total_to_fetch = 0
     temp_log_fetch_curr = 0
     dump_values = False
+    load_offline_values = False
+    offline_vales = []
     def get_cookie(self):
         if self.cookie is None:
             url = 'https://www.carwale.com' + "/used"
@@ -73,18 +76,19 @@ class DataReq:
             data[keymap.split("=")[0]] = str(keymap.split("=")[1]).replace("+", " ")
         return data
 
-    def fetch_models(self, body_types=None, cities=None, makes=None, budget=None, year=None):
+    def fetch_models(self, file_path, body_types=None, cities=None, makes=None, budget=None, year=None):
+        start = time.time()
         print("body_types: {}".format(body_types))
         print("cities: {}".format(None if cities is None else ", ".join([city['cityName'] for city in cities])))
         print("makes: {}".format(None if makes is None else ", ".join([make['makeName'] for make in makes])))
         print("budget: {}".format(budget))
         print("age: {}".format(year))
-        print()
         if cities is None:
             cities = [{'cityId': '1', 'cityName': 'Mumbai'}]
         fetched = []
         all_city_fetch = {}
         for city in cities:
+            print()
             print("City " + city['cityName'])
             print("Fetching stock")
             init_url = 'https://www.carwale.com/api/stocks/filters/'
@@ -140,83 +144,107 @@ class DataReq:
                 # print(fetch_num)
             print("Fetched stock: " + str(len(city_fetch)))
             all_city_fetch[city['cityName']] = city_fetch
-            print()
-        print("Completed")
+        print()
         for city_data in all_city_fetch.keys():
             [fetched.append(x) for x in all_city_fetch[city_data]]
+        if self.load_offline_values:
+            try:
+                print("Loading offline values")
+                data_str = open(file_path, 'r').read()
+                if data_str.strip() != "":
+                    self.offline_vales = json.loads(open(file_path, 'r').read())
+                else:
+                    self.offline_vales = []
+                print("Loaded offline values")
+            except:
+                traceback.print_exc()
+                print("Loading offline values failed")
+        print()
+        end = time.time()
+        print("Fetching stock took {}".format(end-start))
+        print()
         return list({v['profileId']: v for v in fetched if self.dump_values or len(v['stockImages'])}.values())
 
     def get_body_types(self):
         return ['2', '5', '8']
 
     def fetch_car_specs(self, model):
-        rtn = None
+        start = time.time()
+        rtn = {"include" : False}
         url = None
-        try:
-            url = 'https://www.carwale.com' + model['url']
-            response = requests.get(url, headers=self.get_headers(False))
-            if response.status_code != 200:
-                print("Fetching URL returned {}: {}".format(response.status_code, url))
-                if self.dump_values:
-                    model['power'] = 0
-                    model['torque'] = 0
-                    model['success'] = False
-                    return model
-                else:
-                    return None
+        if self.load_offline_values:
+            rtn = self.get_offline_model(model)
+        if rtn is None:
             try:
-                from BeautifulSoup import BeautifulSoup
-            except ImportError:
-                from bs4 import BeautifulSoup
-            parsed_html = BeautifulSoup(response.text, 'html.parser')
-            property_wrapper_tags = parsed_html.find_all('ul', class_='o-cpnuEd o-XylGE o-eNbQSA o-bIMsfE o-djSZRV o-GFmfi')
-            for property_wrapper_tag in property_wrapper_tags:
-                prop_key_map = property_wrapper_tag.find_all('li')
-                if len(prop_key_map) >= 2:
-                    model[str(prop_key_map[0].get_text()).lower()] = prop_key_map[1].get_text()
-            if 'max power (bhp@rpm)' in model.keys():
+                url = 'https://www.carwale.com' + model['url']
+                response = requests.get(url, headers=self.get_headers(False))
+                if response.status_code != 200:
+                    print("Fetching URL returned {}: {}".format(response.status_code, url))
+                    if self.dump_values:
+                        model['power'] = 0
+                        model['torque'] = 0
+                        model['success'] = False
+                        return model
+                    else:
+                        return None
                 try:
-                    power_str = model['max power (bhp@rpm)']
-                    power_split = power_str.split("@")
-                    power = int(str(power_split[0]).strip().split(" ")[0])
-                    model['power'] = power
-                except:
-                    x = 1
-            if 'max torque (nm@rpm)' in model.keys():
-                try:
-                    torque_str = model['max torque (nm@rpm)']
-                    torque_split = torque_str.split("@")
-                    torque = int(str(torque_split[0]).strip().split(" ")[0])
-                    model['torque'] = torque
-                except:
-                    x = 1
-            if 'power' not in model.keys():
-                model['power'] = 0
-            if 'torque' not in model.keys():
-                model['torque'] = 0
-            if (self.door is None or (
-                    self.door is not None and 'self.doors' in model.keys() and str(self.door) not in model['self.doors'])) \
-                    and (self.power_req is None or
-                         (self.power_req is not None and 'power' in model.keys() and
-                          (int(model['power']) == 0 or int(model['power']) >= int(self.power_req)))):
+                    from BeautifulSoup import BeautifulSoup
+                except ImportError:
+                    from bs4 import BeautifulSoup
+                parsed_html = BeautifulSoup(response.text, 'html.parser')
+                property_wrapper_tags = parsed_html.find_all('ul', class_='o-cpnuEd o-XylGE o-eNbQSA o-bIMsfE o-djSZRV o-GFmfi')
+                for property_wrapper_tag in property_wrapper_tags:
+                    prop_key_map = property_wrapper_tag.find_all('li')
+                    if len(prop_key_map) >= 2:
+                        model[str(prop_key_map[0].get_text()).lower()] = prop_key_map[1].get_text()
+                if 'max power (bhp@rpm)' in model.keys():
+                    try:
+                        power_str = model['max power (bhp@rpm)']
+                        power_split = power_str.split("@")
+                        power = int(str(power_split[0]).strip().split(" ")[0])
+                        model['power'] = power
+                    except:
+                        x = 1
+                if 'max torque (nm@rpm)' in model.keys():
+                    try:
+                        torque_str = model['max torque (nm@rpm)']
+                        torque_split = torque_str.split("@")
+                        torque = int(str(torque_split[0]).strip().split(" ")[0])
+                        model['torque'] = torque
+                    except:
+                        x = 1
+                if 'power' not in model.keys():
+                    model['power'] = 0
+                if 'torque' not in model.keys():
+                    model['torque'] = 0
                 rtn = model
                 rtn['success'] = True
-        except:
-            # traceback.print_exc()
-            rtn = model
-            rtn['power'] = 0
-            rtn['torque'] = 0
-            rtn['success'] = False
-            print("Failed to fetch url: {}".format(url))
+            except:
+                # traceback.print_exc()
+                rtn = model
+                rtn['power'] = 0
+                rtn['torque'] = 0
+                rtn['success'] = False
+                rtn['include'] = self.dump_values
+                print("Failed to fetch url: {}".format(url))
         # return model
+        if self.dump_values or (self.door is None or (
+                self.door is not None and 'self.doors' in rtn.keys() and str(self.door) not in rtn['self.doors'])) \
+                and (self.power_req is None or
+                     (self.power_req is not None and 'power' in rtn.keys() and
+                      (int(rtn['power']) == 0 or int(rtn['power']) >= int(self.power_req)))):
+            rtn['include'] = True
         self.fetched_count += 1
         self.temp_log_fetch_curr += 1
-        if self.temp_log_fetch_curr * 100 / self.total_to_fetch > 1:
+        if self.temp_log_fetch_curr > 25:
             print("Fetched {}%".format(self.fetched_count * 100 // self.total_to_fetch, self.total_to_fetch))
             self.temp_log_fetch_curr = 0
+        end = time.time()
+        rtn['timeToFetch'] = end-start
         return rtn
 
     def fetch_car_info(self, sorted_models, search_terms=None, finance_req=False):
+        start = time.time()
         print("Fetching car infos")
         search_filter = [x for x in sorted_models if self.dump_values or (search_terms is None
                          or sum([1 if str(y).strip().upper() in str(x['carName']).upper() else 0 for y in search_terms]) > 0)]
@@ -225,10 +253,10 @@ class DataReq:
                            and (not finance_req or (finance_req and x['isEligibleForFinance'])))]
         self.total_to_fetch = len(filtered_models)
         print("Eligible cars: {} of {}".format(len(filtered_models), len(sorted_models)))
-        with ThreadPoolExecutor(max_workers=30) as exe:
+        with ThreadPoolExecutor(max_workers=1000) as exe:
             result = exe.map(self.fetch_car_specs, filtered_models)
             exe.shutdown()
-            top_n = [r for r in result if r is not None]
+            top_n = [r for r in result if r['include']]
         # for model in filtered_models:
         #     print('{} of {}, price {}'.format(count, len(filtered_models), model['priceNumeric']))
         #     count += 1
@@ -237,6 +265,12 @@ class DataReq:
         #     if model_details is not None:
         #         print(json.dumps(self.car_info(model_details), indent=2))
         #         top_n.append(model_details)
+        end = time.time()
+        print()
+        print("Fetching all specs took {}".format(end-start))
+        average_time_to_fetch = sum([x['timeToFetch'] for x in top_n])/len(top_n)
+        print("Fetching each spec took {}".format(average_time_to_fetch))
+        print()
         return top_n
 
     def get_popular_cities(self, city_name=None):
@@ -280,3 +314,16 @@ class DataReq:
                     val = 'https://www.carwale.com' + val
                 car[key] = val
         return car
+
+    def get_offline_model(self, model):
+        try:
+            for offline_model in self.offline_vales:
+                if 'success' in offline_model.keys() and offline_model['success']\
+                        and model['profileId'] == offline_model['profileId']\
+                        and model['priceNumeric'] == offline_model['priceNumeric']\
+                        and model['kmNumeric'] == offline_model['kmNumeric']:
+                    return offline_model
+        except:
+            x=1
+        return None
+
