@@ -30,6 +30,8 @@ def compare(o1, o2):
 
 
 # body_types = data_req_obj.get_body_types()
+popular_cities = 'Mumbai, Bangalore, Delhi, Pune, Navi Mumbai, Hyderabad, Ahmedabad, Chennai, Kolkata, Chandigarh'.split(
+    ", ")
 popular_cities = data_req_obj.get_popular_cities()
 make_list = data_req_obj.get_make_list('audi')
 models = data_req_obj.fetch_models(file_path, body_types=None, cities=popular_cities, makes=None,
@@ -45,7 +47,7 @@ response_sorted = sorted(response, key=cmp_to_key(compare))
 # key=lambda x: ((int(x['priceNumeric']) * 1000000) - int(x['priceNumeric'])), reverse=True)
 response_json = json.dumps(response_sorted, indent=2)
 if data_req_obj.dump_values:
-    print("Dumping values to {}".format(file_path))
+    print("Dumping {} values to {}".format(len(response), file_path))
     print(response_json, file=open(file_path, 'w'))
     print("Done")
 else:

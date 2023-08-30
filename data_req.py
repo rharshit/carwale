@@ -246,30 +246,31 @@ class DataReq:
         start = time.time()
         print("Fetching car infos")
         search_filter = [x for x in sorted_models if self.dump_values or (search_terms is None
-                         or sum([1 if str(y).strip().upper() in str(x['carName']).upper() else 0 for y in search_terms]) > 0)]
+                                                                          or sum(
+                    [1 if str(y).strip().upper() in str(x['carName']).upper() else 0 for y in search_terms]) > 0)]
         filtered_models = [x for x in search_filter if self.dump_values or
                            ((self.max_price is None or int(x['priceNumeric']) <= self.max_price)
-                           and (not finance_req or (finance_req and x['isEligibleForFinance'])))]
+                            and (not finance_req or (finance_req and x['isEligibleForFinance'])))]
         self.total_to_fetch = len(filtered_models)
         print("Eligible cars: {} of {}".format(len(filtered_models), len(sorted_models)))
-        with ThreadPoolExecutor(max_workers=1000) as exe:
+        with ThreadPoolExecutor(max_workers=350) as exe:
             result = exe.map(self.fetch_car_specs, filtered_models)
             exe.shutdown()
-            top_n = [r for r in result if r['include']]
-        # for model in filtered_models:
-        #     print('{} of {}, price {}'.format(count, len(filtered_models), model['priceNumeric']))
-        #     count += 1
-        #     # print(str(model['priceNumeric']) + " <= " + str(max_price))
-        #     model_details = self.fetch_car_specs(model)
-        #     if model_details is not None:
-        #         print(json.dumps(self.car_info(model_details), indent=2))
-        #         top_n.append(model_details)
-        end = time.time()
-        print()
-        print("Fetching all specs took {}".format(end-start))
-        average_time_to_fetch = sum([x['timeToFetch'] for x in top_n])/len(top_n)
-        print("Fetching each spec took {}".format(average_time_to_fetch))
-        print()
+            result_raw = [r for r in result]
+            top_n = [r for r in result_raw if r['include']]
+            end = time.time()
+            print()
+            print("Fetching all specs took {}".format(end - start))
+            if len([r for r in result_raw]) > 0:
+                average_time_to_fetch = sum([x['timeToFetch'] for x in result_raw]) / len(result_raw)
+                print("Fetching each spec took {}".format(average_time_to_fetch))
+        if self.dump_values:
+            start = time.time()
+            print("Merging offline data")
+            [top_n.append(x) for x in self.offline_vales if x['profileId'] not in [y['profileId'] for y in top_n]]
+            end = time.time()
+            print("Merged in {}".format(end - start))
+            print()
         return top_n
 
     def get_popular_cities(self, city_name=None):
