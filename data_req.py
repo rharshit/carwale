@@ -233,6 +233,8 @@ class DataReq:
                      (self.power_req is not None and 'power' in rtn.keys() and
                       (int(rtn['power']) == 0 or int(rtn['power']) >= int(self.power_req)))):
             rtn['include'] = True
+        else:
+            rtn['include'] = False
         self.fetched_count += 1
         self.temp_log_fetch_curr += 1
         if self.temp_log_fetch_curr > 25:
@@ -257,7 +259,7 @@ class DataReq:
             result = exe.map(self.fetch_car_specs, filtered_models)
             exe.shutdown()
             result_raw = [r for r in result]
-            top_n = [r for r in result_raw if r['include']]
+            top_n = [r for r in result_raw if 'include' not in r.keys() or r['include']]
             end = time.time()
             print()
             print("Fetching all specs took {}".format(end - start))
@@ -311,7 +313,9 @@ class DataReq:
             if key.strip().upper() in [x.strip().upper() for x in keys] or dump_values:
                 val = model[key]
                 if 'URL' in key.strip().upper():
-                    val = 'https://www.carwale.com' + val
+                    val = str(val).strip().replace('https://www.carwale.com', '')
+                    if not str(val).strip().startswith('https://www.carwale.com'):
+                        val = 'https://www.carwale.com' + str(val).strip()
                 car[key] = val
         return car
 
