@@ -48,13 +48,13 @@ def dump_values(response_obj):
     print("Done")
 
 
-# body_types = data_req_obj.get_body_types()
+body_types = data_req_obj.get_body_types()
 popular_cities = 'Mumbai, Bangalore, Delhi, Pune, Navi Mumbai, Hyderabad, Ahmedabad, Chennai, Kolkata, Chandigarh' \
     .split(", ")
 popular_cities = data_req_obj.get_popular_cities()
 make_list = data_req_obj.get_make_list(", ".join(req_makes[1:]))
 # make_list = data_req_obj.get_make_list('bmw')
-models = data_req_obj.fetch_models(file_path, body_types=None, cities=popular_cities, makes=None,
+models = data_req_obj.fetch_models(file_path, body_types=body_types, cities=popular_cities, makes=None,
                                    budget=budget_str, year=year)
 sorted_models = sorted(models, key=lambda d: int(d['priceNumeric']))
 data_req_obj.max_price = max_price * 100000

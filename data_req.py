@@ -164,7 +164,7 @@ class DataReq:
         return list({v['profileId']: v for v in fetched if self.dump_values or len(v['stockImages'])}.values())
 
     def get_body_types(self):
-        return ['2', '5', '8']
+        return ['1', '2', '5']
 
     def fetch_car_specs(self, model):
         start = time.time()
