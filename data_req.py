@@ -86,61 +86,8 @@ class DataReq:
         fetched = []
         all_city_fetch = {}
         for city in cities:
-            print()
-            print("City " + city['cityName'])
-            print("Fetching stock")
-            init_url = 'https://www.carwale.com/api/stocks/filters/'
-            data = {"pn": "1", "kms": "0-", "city": str(city['cityId']), "so": "-1", "sc": "-1"}
-            if body_types is not None:
-                data['bodytype'] = " ".join(body_types)
-            if makes is not None:
-                data['car'] = " ".join([str(x['makeId']).strip() for x in makes])
-            if budget is not None:
-                data['budget'] = budget
-            else:
-                data['budget'] = "0-"
-            if year is not None:
-                data['year'] = year
-            else:
-                data['year'] = "0-"
-            # data = {"pn": "2", "budget": "0-", "bodytype": " ".join(body_types), "city": city,
-            #         "kms": "0-", "sc": "-1", "so": "-1", "year": "0-", "lcr": "24",
-            #         "shouldfetchnearbycars": "False", "stockfetched": "30",
-            #         "excludestocks": "D3962709 D3919297 D4034539 D4059817 D4051277 D4057575 D3909099 D3736887"}
-            next_url = None
-            fetch_num = []
-            city_fetch = []
-            s = requests.session()
-            try:
-                response = requests.post(init_url, headers=self.get_headers(), json=data)
-                if response.status_code == 200:
-                    [city_fetch.append(x) for x in json.loads(response.text)['stocks']]
-                    city_fetch = list({v['profileId']: v for v in city_fetch if self.dump_values or len(v['stockImages'])}.values())
-                    next_url = json.loads(response.text)['nextPageUrl']
-                    print("Found {} cars".format(json.loads(response.text)['totalCount']))
-                    fetch_num.append(len(city_fetch))
-                else:
-                    raise Exception
-            except Exception:
-                # traceback.print_exc()
-                next_url = None
-            while next_url is not None and (len(fetch_num) < 3 or (
-                    len(fetch_num) >= 3 and fetch_num[-1] - fetch_num[-2] != 0 and fetch_num[-2] - fetch_num[-3] != 0)):
-                try:
-                    data = self.generate_data(next_url)
-                    response = requests.post(init_url, headers=self.get_headers(), json=data)
-                    if response.status_code == 200:
-                        [city_fetch.append(x) for x in json.loads(response.text)['stocks']]
-                        city_fetch = list({v['profileId']: v for v in city_fetch if self.dump_values or len(v['stockImages'])}.values())
-                        fetch_num.append(len(city_fetch))
-                        next_url = json.loads(response.text)['nextPageUrl']
-                    else:
-                        raise Exception
-                except Exception:
-                    # traceback.print_exc()
-                    next_url = None
-                # print(fetch_num)
-            print("Fetched stock: " + str(len(city_fetch)))
+            city_fetch = self.fetch_city_models(city, body_types=body_types, cities=cities, makes=makes, budget=budget,
+                                                year=year)
             all_city_fetch[city['cityName']] = city_fetch
         print()
         for city_data in all_city_fetch.keys():
@@ -322,12 +269,71 @@ class DataReq:
     def get_offline_model(self, model):
         try:
             for offline_model in self.offline_vales:
-                if 'success' in offline_model.keys() and offline_model['success']\
-                        and model['profileId'] == offline_model['profileId']\
-                        and model['priceNumeric'] == offline_model['priceNumeric']\
+                if 'success' in offline_model.keys() and offline_model['success'] \
+                        and model['profileId'] == offline_model['profileId'] \
+                        and model['priceNumeric'] == offline_model['priceNumeric'] \
                         and model['kmNumeric'] == offline_model['kmNumeric']:
                     return offline_model
         except:
-            x=1
+            x = 1
         return None
 
+    def fetch_city_models(self, city, body_types=None, cities=None, makes=None, budget=None, year=None):
+        print()
+        print("City " + city['cityName'])
+        print("Fetching stock")
+        init_url = 'https://www.carwale.com/api/stocks/filters/'
+        data = {"pn": "1", "kms": "0-", "city": str(city['cityId']), "so": "-1", "sc": "-1"}
+        if body_types is not None:
+            data['bodytype'] = " ".join(body_types)
+        if makes is not None:
+            data['car'] = " ".join([str(x['makeId']).strip() for x in makes])
+        if budget is not None:
+            data['budget'] = budget
+        else:
+            data['budget'] = "0-"
+        if year is not None:
+            data['year'] = year
+        else:
+            data['year'] = "0-"
+        # data = {"pn": "2", "budget": "0-", "bodytype": " ".join(body_types), "city": city,
+        #         "kms": "0-", "sc": "-1", "so": "-1", "year": "0-", "lcr": "24",
+        #         "shouldfetchnearbycars": "False", "stockfetched": "30",
+        #         "excludestocks": "D3962709 D3919297 D4034539 D4059817 D4051277 D4057575 D3909099 D3736887"}
+        next_url = None
+        fetch_num = []
+        city_fetch = []
+        s = requests.session()
+        try:
+            response = requests.post(init_url, headers=self.get_headers(), json=data)
+            if response.status_code == 200:
+                [city_fetch.append(x) for x in json.loads(response.text)['stocks']]
+                city_fetch = list(
+                    {v['profileId']: v for v in city_fetch if self.dump_values or len(v['stockImages'])}.values())
+                next_url = json.loads(response.text)['nextPageUrl']
+                print("Found {} cars".format(json.loads(response.text)['totalCount']))
+                fetch_num.append(len(city_fetch))
+            else:
+                raise Exception
+        except Exception:
+            # traceback.print_exc()
+            next_url = None
+        while next_url is not None and (len(fetch_num) < 3 or (
+                len(fetch_num) >= 3 and fetch_num[-1] - fetch_num[-2] != 0 and fetch_num[-2] - fetch_num[-3] != 0)):
+            try:
+                data = self.generate_data(next_url)
+                response = requests.post(init_url, headers=self.get_headers(), json=data)
+                if response.status_code == 200:
+                    [city_fetch.append(x) for x in json.loads(response.text)['stocks']]
+                    city_fetch = list(
+                        {v['profileId']: v for v in city_fetch if self.dump_values or len(v['stockImages'])}.values())
+                    fetch_num.append(len(city_fetch))
+                    next_url = json.loads(response.text)['nextPageUrl']
+                else:
+                    raise Exception
+            except Exception:
+                # traceback.print_exc()
+                next_url = None
+            # print(fetch_num)
+        print("Fetched stock: " + str(len(city_fetch)))
+        return city_fetch
