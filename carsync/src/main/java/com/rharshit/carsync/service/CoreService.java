@@ -2,6 +2,7 @@ package com.rharshit.carsync.service;
 
 import com.rharshit.carsync.repository.ConnectionRepository;
 import com.rharshit.carsync.repository.model.ConnectionItem;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,7 +21,20 @@ public class CoreService {
     @Value("${spring.application.name}")
     private String applicationName;
 
+    @PostConstruct
+    public void postInit() {
+        log.info("Application name: {}", applicationName);
+        test();
+    }
+
     public String test() {
+        if (testMongoConnection() == null) {
+            return "Error in mongo connection";
+        }
+        return "Test successful!";
+    }
+
+    public String testMongoConnection() {
         try {
             Optional<ConnectionItem> optionalItem = connectionRepository.findOne(Example.of(new ConnectionItem(null, applicationName, null)));
             ConnectionItem item;
@@ -39,6 +53,7 @@ public class CoreService {
             log.trace("Item saved with id: {}", saved.getId());
             log.trace("Item saved with client: {}", saved.getClient());
             log.trace("Item saved with lastConnection: {}", saved.getLastConnection());
+            log.info("MongoDB connection test successful");
             return saved.getId();
         } catch (Exception e) {
             log.error("Error saving item", e);
