@@ -1,6 +1,8 @@
 package com.rharshit.carsync.service;
 
+import com.rharshit.carsync.repository.CarModelRepository;
 import com.rharshit.carsync.repository.ConnectionRepository;
+import com.rharshit.carsync.repository.model.CarModel;
 import com.rharshit.carsync.repository.model.ConnectionItem;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
@@ -9,6 +11,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Example;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -17,6 +20,9 @@ public class CoreService {
 
     @Autowired
     private ConnectionRepository connectionRepository;
+
+    @Autowired
+    private CarModelRepository carModelRepository;
 
     @Value("${spring.application.name}")
     private String applicationName;
@@ -60,5 +66,9 @@ public class CoreService {
             e.printStackTrace();
         }
         return null;
+    }
+
+    public List<CarModel> getCars() {
+        return carModelRepository.findAll();
     }
 }
