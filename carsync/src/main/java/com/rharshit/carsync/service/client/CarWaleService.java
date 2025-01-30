@@ -7,8 +7,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 
@@ -31,9 +31,14 @@ public class CarWaleService extends ClientService<CarWaleCarModel> {
         log.info("Total cars fetched : " + allStocks.size());
     }
 
-    //TODO: Implement this method
     private List<Integer> getCityList() {
-        return Arrays.asList(105, 1, 10);
+        CityListResponse cityListResponse = getRestClient().post().uri("/api/used-search/filters/")
+                .contentType(APPLICATION_JSON).body("{}")
+                .retrieve().body(CityListResponse.class);
+        if (cityListResponse == null || cityListResponse.city == null) {
+            return new ArrayList<>();
+        }
+        return new ArrayList<>(cityListResponse.city.stream().map(city -> city.cityId).collect(Collectors.toSet()));
     }
 
     private void fetchCarsForCity(int city) {
@@ -50,6 +55,7 @@ public class CarWaleService extends ClientService<CarWaleCarModel> {
             log.info((int) getPercentage(total, fetched) + "% : Fetched " + fetched + " cars out of " + total + " from CarWale");
             response = getRestClient().get().uri(response.nextPageUrl)
                     .retrieve().body(AllCarResponse.class);
+            total = response.totalCount;
             stocks.addAll(response.stocks);
             fetched = stocks.size();
             log.info("Stock size : " + stocks.size());
@@ -195,6 +201,17 @@ public class CarWaleService extends ClientService<CarWaleCarModel> {
             public int maximum;
             @JsonProperty("default")
             public int mydefault;
+        }
+    }
+
+    static class CityListResponse {
+        public List<City> city;
+
+        static class City {
+            public int cityId;
+            public int cityCount;
+            public String cityName;
+            public String cityMaskingName;
         }
     }
 }
