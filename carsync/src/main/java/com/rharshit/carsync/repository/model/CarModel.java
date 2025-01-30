@@ -5,20 +5,33 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 
 @Document("carModel")
 @Data
 @AllArgsConstructor
+@NoArgsConstructor
 public class CarModel {
     @Id
+    @NonNull
     private String id;
+    @NonNull
     private String make;
+    @NonNull
     private String model;
+    @NonNull
     private Integer year;
+    @NonNull
     private Integer price;
+    @NonNull
     private Integer mileage;
+    @NonNull
     private Specs specs;
+
+    public CarModel(String id, String make, String model, Integer year, Integer price, Integer mileage) {
+        this(id, make, model, year, price, mileage, new Specs());
+    }
 
     @Data
     @NoArgsConstructor
