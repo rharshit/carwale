@@ -6,8 +6,9 @@ import com.rharshit.carsync.service.ClientService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON;
@@ -16,19 +17,32 @@ import static org.springframework.http.MediaType.APPLICATION_JSON;
 @Service
 public class CarWaleService extends ClientService<CarWaleCarModel> {
 
-    List<AllCarResponse.Stock> allStocks = new ArrayList<>();
+    Set<AllCarResponse.Stock> allStocks = Collections.synchronizedSet(new HashSet<>());
 
     // TODO: Implement this method
     @Override
     public void fetchAllCars() {
+        long start = System.currentTimeMillis();
+        ExecutorService discoveryExecutor = Executors.newFixedThreadPool(10);
         List<Integer> cities = getCityList();
         for (int city : cities) {
-            log.info("Fetching cars for city : " + city);
-            fetchCarsForCity(city);
-            log.info("Fetched cars for city : " + city);
+            discoveryExecutor.execute(() -> {
+                log.info("Fetching cars for city : " + city);
+                long startTime = System.currentTimeMillis();
+                fetchCarsForCity(city);
+                log.info("Fetched cars for city : " + city + " in " + (System.currentTimeMillis() - startTime) + "ms");
+            });
+        }
+        discoveryExecutor.shutdown();
+        try {
+            while (!discoveryExecutor.awaitTermination(1000, java.util.concurrent.TimeUnit.NANOSECONDS)) {
+                Thread.sleep(1000);
+            }
+        } catch (InterruptedException e) {
+            log.error("Error waiting for discovery executor to finish", e);
         }
         log.info("Fetched all cars from CarWale");
-        log.info("Total cars fetched : " + allStocks.size());
+        log.info("Total cars fetched : " + allStocks.size() + " in " + (System.currentTimeMillis() - start) + "ms");
     }
 
     private List<Integer> getCityList() {
@@ -163,6 +177,18 @@ public class CarWaleService extends ClientService<CarWaleCarModel> {
             public String formattedDiscountPrice;
             public CampaignTagDetails campaignTagDetails;
             public String specialOfferText;
+
+            @Override
+            public boolean equals(Object o) {
+                if (o == null || getClass() != o.getClass()) return false;
+                Stock stock = (Stock) o;
+                return Objects.equals(profileId, stock.profileId) && Objects.equals(url, stock.url);
+            }
+
+            @Override
+            public int hashCode() {
+                return Objects.hash(profileId, url);
+            }
         }
 
         static class AdditionalTag {
