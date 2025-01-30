@@ -23,9 +23,4 @@ public class CarController {
     public boolean addCar(@RequestBody List<CarModel> carModels) {
         return service.addCar(carModels);
     }
-
-    @PostMapping("/{client}/fetch")
-    public String startFetching(@PathVariable String client) {
-        return service.startFetching(client);
-    }
 }

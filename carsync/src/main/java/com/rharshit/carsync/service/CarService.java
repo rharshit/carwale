@@ -45,7 +45,7 @@ public class CarService {
         if (clientService == null) {
             return "Client not found";
         }
-        return clientService.fetchAllCars();
+        return clientService.startFetchThread();
     }
 
     private ClientService<? extends ClientCarModel> getClientService(String client) {
