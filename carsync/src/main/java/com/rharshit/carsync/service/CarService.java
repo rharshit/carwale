@@ -24,4 +24,14 @@ public class CarService {
             return Collections.emptyList();
         }
     }
+
+    public boolean addCar(List<CarModel> carModels) {
+        try {
+            List<CarModel> saved = carModelRepository.saveAll(carModels);
+            return saved.size() == carModels.size();
+        } catch (Exception e) {
+            log.error("Error saving car", e);
+            return false;
+        }
+    }
 }

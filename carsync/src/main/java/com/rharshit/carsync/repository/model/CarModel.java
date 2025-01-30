@@ -21,6 +21,8 @@ public class CarModel {
     @NonNull
     private String model;
     @NonNull
+    private String variant;
+    @NonNull
     private Integer year;
     @NonNull
     private Integer price;
@@ -29,8 +31,8 @@ public class CarModel {
     @NonNull
     private Specs specs;
 
-    public CarModel(String id, String make, String model, Integer year, Integer price, Integer mileage) {
-        this(id, make, model, year, price, mileage, new Specs());
+    public CarModel(String id, String make, String model, String variant, Integer year, Integer price, Integer mileage) {
+        this(id, make, model, variant, year, price, mileage, new Specs());
     }
 
     @Data
