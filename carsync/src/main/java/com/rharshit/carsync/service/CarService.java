@@ -2,6 +2,8 @@ package com.rharshit.carsync.service;
 
 import com.rharshit.carsync.repository.CarModelRepository;
 import com.rharshit.carsync.repository.model.CarModel;
+import com.rharshit.carsync.repository.model.ClientCarModel;
+import com.rharshit.carsync.service.client.CarWaleService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -15,6 +17,9 @@ public class CarService {
 
     @Autowired
     private CarModelRepository carModelRepository;
+
+    @Autowired
+    private CarWaleService carWaleService;
 
     public List<CarModel> getCars() {
         try {
@@ -32,6 +37,23 @@ public class CarService {
         } catch (Exception e) {
             log.error("Error saving car", e);
             return false;
+        }
+    }
+
+    public String startFetching(String client) {
+        ClientService<? extends ClientCarModel> clientService = getClientService(client);
+        if (clientService == null) {
+            return "Client not found";
+        }
+        return clientService.fetchAllCars();
+    }
+
+    private ClientService<? extends ClientCarModel> getClientService(String client) {
+        switch (client) {
+            case "carwale":
+                return carWaleService;
+            default:
+                return null;
         }
     }
 }
