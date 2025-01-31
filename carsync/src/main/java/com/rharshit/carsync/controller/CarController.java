@@ -3,6 +3,7 @@ package com.rharshit.carsync.controller;
 import com.rharshit.carsync.repository.model.CarModel;
 import com.rharshit.carsync.service.CarService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -15,6 +16,7 @@ public class CarController {
     private CarService service;
 
     @GetMapping
+    @Cacheable("allCars")
     public List<CarModel> getCars() {
         return service.getCars();
     }
