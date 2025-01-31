@@ -31,7 +31,7 @@ public class CarModel {
     @NonNull
     private Integer mileage;
     @NonNull
-    private Specs specs;
+    private Specs specs = new Specs();
 
     public CarModel(String id, String clientId, String make, String model, String variant, Integer year, Integer price, Integer mileage) {
         this(id, clientId, make, model, variant, year, price, mileage, new Specs());
@@ -47,7 +47,7 @@ public class CarModel {
         @Nullable
         private String engineType;
         @Nullable
-        private String engineDisplacement;
+        private Integer engineDisplacement;
         @Nullable
         private Integer enginePower;
         @Nullable

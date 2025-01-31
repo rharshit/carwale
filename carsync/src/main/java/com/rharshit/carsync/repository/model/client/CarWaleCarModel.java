@@ -7,7 +7,7 @@ import lombok.Data;
 public class CarWaleCarModel extends ClientCarModel {
 
     @Override
-    public String generateClientId() {
+    public String getClientId() {
         return "carwale_" + getInternalId();
     }
 }
