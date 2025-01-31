@@ -6,7 +6,6 @@ import com.rharshit.carsync.repository.model.ClientCarModel;
 import com.rharshit.carsync.service.client.CarWaleService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.stereotype.Service;
 
@@ -35,7 +34,6 @@ public class CarService {
         }
     }
 
-    @CacheEvict(value = "allCars", allEntries = true)
     public boolean addCar(List<CarModel> carModels) {
         try {
             List<CarModel> saved = carModelRepository.saveAll(carModels);

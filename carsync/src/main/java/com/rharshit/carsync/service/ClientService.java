@@ -7,7 +7,6 @@ import com.rharshit.carsync.repository.model.ClientCarModel;
 import com.rharshit.carsync.repository.model.MakeModel;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.data.domain.Example;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -129,7 +128,7 @@ public abstract class ClientService<T extends ClientCarModel> {
         } else {
             boolean pushed = false;
             try {
-                List<CarModel> saved = addCar(carsToPush);
+                List<CarModel> saved = carModelRepository.saveAll(carsToPush);
                 log.debug("pushCarsToDB : Saved {} cars to DB", saved.size());
                 pushed = saved.size() == carsToPush.size();
                 if (pushed) {
@@ -191,13 +190,4 @@ public abstract class ClientService<T extends ClientCarModel> {
         return carModelRepository.exists(Example.of(carModel));
     }
 
-    @CacheEvict(value = "allCars", allEntries = true)
-    public List<CarModel> addCar(List<CarModel> carModels) {
-        try {
-            return carModelRepository.saveAll(carModels);
-        } catch (Exception e) {
-            log.error("Error saving car", e);
-            return new ArrayList<>();
-        }
-    }
 }
