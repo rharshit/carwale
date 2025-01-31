@@ -11,7 +11,9 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -21,12 +23,8 @@ import static org.springframework.http.MediaType.APPLICATION_JSON;
 @Service
 public class CarWaleService extends ClientService<CarWaleCarModel> {
 
-    Set<AllCarResponse.Stock> allStocks = Collections.synchronizedSet(new HashSet<>());
-
-    // TODO: Implement this method
     @Override
     public void fetchAllCars() {
-        long start = System.currentTimeMillis();
         ExecutorService discoveryExecutor = Executors.newFixedThreadPool(64);
         ExecutorService fetchExecutor = Executors.newFixedThreadPool(64);
 
@@ -47,7 +45,7 @@ public class CarWaleService extends ClientService<CarWaleCarModel> {
         } catch (InterruptedException e) {
             log.error("Error waiting for discovery executor to finish", e);
         }
-        log.info("Fetched list of all cars from CarWale");
+        log.debug("Fetched list of all cars from CarWale");
 
         fetchExecutor.shutdown();
         try {
@@ -57,8 +55,7 @@ public class CarWaleService extends ClientService<CarWaleCarModel> {
         } catch (InterruptedException e) {
             log.error("Error waiting for fetch executor to finish", e);
         }
-        log.info("Fetched all car details from CarWale");
-        log.info("Total cars fetched : " + allStocks.size() + " in " + (System.currentTimeMillis() - start) + "ms");
+        log.debug("Fetched all car details from CarWale");
     }
 
     private List<Integer> getCityList() {
@@ -101,7 +98,6 @@ public class CarWaleService extends ClientService<CarWaleCarModel> {
                 log.info("No next page");
             }
         }
-        allStocks.addAll(stocks);
         log.info("Fetched a total of " + stocks.size() + " cars of " + total + " cars from CarWale");
     }
 
@@ -135,6 +131,7 @@ public class CarWaleService extends ClientService<CarWaleCarModel> {
                     populateSpecs(carModel.getSpecs(), specs);
                 }
             }
+            pushCar(carModel);
             log.trace("Fetched details for car : " + carModel.getMake() + " " + carModel.getModel() + " " + carModel.getVariant() + " in " + (System.currentTimeMillis() - startTime) + "ms");
         } catch (Exception e) {
             log.error("Error fetching details for car : " + stock.makeName + " " + stock.modelName + " " + stock.versionName + " " + stock.url, e);
