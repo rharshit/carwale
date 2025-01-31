@@ -81,9 +81,10 @@ public abstract class ClientService<T extends ClientCarModel> {
     /**
      * Push car to staging list
      *
-     * @param carModel
+     * @param clientCarModel
      */
-    protected void pushCar(CarModel carModel) {
+    protected void pushCar(ClientCarModel clientCarModel) {
+        CarModel carModel = clientCarModel.generateCarModel();
         synchronized (carPushList) {
             carPushList.add(carModel);
         }

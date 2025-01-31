@@ -14,8 +14,9 @@ import org.springframework.lang.Nullable;
 @NoArgsConstructor
 public class CarModel {
     @Id
-    @NonNull
     private String id;
+    @NonNull
+    private String client;
     @NonNull
     private String clientId;
     @NonNull
@@ -31,11 +32,9 @@ public class CarModel {
     @NonNull
     private Integer mileage;
     @NonNull
+    private String url;
+    @NonNull
     private Specs specs = new Specs();
-
-    public CarModel(String id, String clientId, String make, String model, String variant, Integer year, Integer price, Integer mileage) {
-        this(id, clientId, make, model, variant, year, price, mileage, new Specs());
-    }
 
     @Data
     @NoArgsConstructor

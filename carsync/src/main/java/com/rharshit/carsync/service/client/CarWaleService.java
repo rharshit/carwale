@@ -109,7 +109,7 @@ public class CarWaleService extends ClientService<CarWaleCarModel> {
         try {
             log.trace("Fetching details for car : " + stock.makeName + " " + stock.modelName + " " + stock.versionName);
             long startTime = System.currentTimeMillis();
-            CarWaleCarModel carModel = new CarWaleCarModel();
+            CarWaleCarModel carModel = new CarWaleCarModel(stock.profileId);
             populateCarModel(stock, carModel);
 
             String response = getRestClient().get().uri(stock.url).retrieve().body(String.class);
@@ -146,7 +146,7 @@ public class CarWaleService extends ClientService<CarWaleCarModel> {
         carModel.setYear(stock.makeYear);
         carModel.setPrice(Integer.parseInt(stock.priceNumeric));
         carModel.setMileage(Integer.parseInt(stock.kmNumeric));
-        carModel.setInternalId(stock.profileId);
+        carModel.setUrl(getClientDomain() + stock.url);
     }
 
     private void populateSpecs(CarModel.Specs carSpecs, List<String> webSpecs) {

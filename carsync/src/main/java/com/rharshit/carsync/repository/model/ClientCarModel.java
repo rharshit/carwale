@@ -7,15 +7,22 @@ import org.springframework.lang.NonNull;
 @Data
 @NoArgsConstructor
 public abstract class ClientCarModel extends CarModel {
+
     @NonNull
     private String internalId;
 
     @Override
-    public abstract String getClientId();
+    @NonNull
+    public abstract String getClient();
 
-    public CarModel generateCarModel(CarModel clientCarModel) {
-        return new CarModel(clientCarModel.getId(), getClientId(), clientCarModel.getMake(),
-                clientCarModel.getModel(), clientCarModel.getVariant(), clientCarModel.getYear(),
-                clientCarModel.getPrice(), clientCarModel.getMileage(), clientCarModel.getSpecs());
+    @Override
+    @NonNull
+    public String getClientId() {
+        return getClient() + "-" + getInternalId();
+    }
+
+    public CarModel generateCarModel() {
+        return new CarModel(getId(), getClient(), getClientId(), getMake(), getModel(), getVariant(), getYear(),
+                getPrice(), getMileage(), getUrl(), getSpecs());
     }
 }
