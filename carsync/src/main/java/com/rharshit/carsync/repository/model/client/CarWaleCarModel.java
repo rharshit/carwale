@@ -4,6 +4,8 @@ import com.rharshit.carsync.repository.model.ClientCarModel;
 import lombok.Data;
 import org.springframework.lang.NonNull;
 
+import static com.rharshit.carsync.common.Constants.CLIENT_ID_CARWALE;
+
 @Data
 public class CarWaleCarModel extends ClientCarModel {
 
@@ -15,6 +17,6 @@ public class CarWaleCarModel extends ClientCarModel {
     @Override
     @NonNull
     public String getClient() {
-        return "carwale";
+        return CLIENT_ID_CARWALE;
     }
 }

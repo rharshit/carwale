@@ -17,6 +17,8 @@ import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import static com.rharshit.carsync.common.Constants.CLIENT_ID_CARWALE;
+import static com.rharshit.carsync.common.Constants.CLIENT_NAME_CARWALE;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 
 @Slf4j
@@ -37,6 +39,7 @@ public class CarWaleService extends ClientService<CarWaleCarModel> {
                 log.trace("Fetched cars for city : " + city + " in " + (System.currentTimeMillis() - startTime) + "ms");
             });
         }
+
         discoveryExecutor.shutdown();
         try {
             while (!discoveryExecutor.awaitTermination(1000, java.util.concurrent.TimeUnit.NANOSECONDS)) {
@@ -220,12 +223,12 @@ public class CarWaleService extends ClientService<CarWaleCarModel> {
 
     @Override
     public String getClientId() {
-        return "carwale";
+        return CLIENT_ID_CARWALE;
     }
 
     @Override
     public String getClientName() {
-        return "CarWale";
+        return CLIENT_NAME_CARWALE;
     }
 
     @Override

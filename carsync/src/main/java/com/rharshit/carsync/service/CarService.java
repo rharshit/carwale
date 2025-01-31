@@ -11,6 +11,8 @@ import org.springframework.stereotype.Service;
 import java.util.Collections;
 import java.util.List;
 
+import static com.rharshit.carsync.common.Constants.CLIENT_ID_CARWALE;
+
 @Slf4j
 @Service
 public class CarService {
@@ -50,7 +52,7 @@ public class CarService {
 
     private ClientService<? extends ClientCarModel> getClientService(String client) {
         switch (client) {
-            case "carwale":
+            case CLIENT_ID_CARWALE:
                 return carWaleService;
             default:
                 return null;
