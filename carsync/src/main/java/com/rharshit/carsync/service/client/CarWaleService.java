@@ -115,6 +115,12 @@ public class CarWaleService extends ClientService<CarWaleCarModel> {
             CarWaleCarModel carModel = new CarWaleCarModel(stock.profileId);
             populateCarModel(stock, carModel);
 
+            boolean fetched = isCarDetailFetched(carModel.getClientId());
+            if (fetched) {
+                log.trace("Details already fetched for car : " + carModel.getMake() + " " + carModel.getModel() + " " + carModel.getVariant());
+                return;
+            }
+
             String response = getRestClient().get().uri(stock.url).retrieve().body(String.class);
             if (response == null) {
                 log.info("Error fetching details for car : " + stock.makeName + " " + stock.modelName + " " + stock.versionName + " " + stock.url + ". Retrying...");

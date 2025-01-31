@@ -7,6 +7,7 @@ import com.rharshit.carsync.repository.model.ClientCarModel;
 import com.rharshit.carsync.repository.model.MakeModel;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Example;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
@@ -83,7 +84,7 @@ public abstract class ClientService<T extends ClientCarModel> {
      *
      * @param clientCarModel
      */
-    protected void pushCar(ClientCarModel clientCarModel) {
+    protected void pushCar(T clientCarModel) {
         CarModel carModel = clientCarModel.generateCarModel();
         synchronized (carPushList) {
             carPushList.add(carModel);
@@ -180,5 +181,12 @@ public abstract class ClientService<T extends ClientCarModel> {
             currentVariant.getCars().add(carModel.getId());
         }
         return makes;
+    }
+
+    // TODO: Optimize this method
+    protected boolean isCarDetailFetched(String clientId) {
+        CarModel carModel = new CarModel();
+        carModel.setClientId(clientId);
+        return carModelRepository.exists(Example.of(carModel));
     }
 }
