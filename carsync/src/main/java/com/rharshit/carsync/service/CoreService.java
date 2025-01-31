@@ -6,6 +6,8 @@ import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.SpringApplication;
+import org.springframework.context.ApplicationContext;
 import org.springframework.data.domain.Example;
 import org.springframework.stereotype.Service;
 
@@ -16,6 +18,9 @@ import java.util.Optional;
 public class CoreService {
 
     @Autowired
+    private ApplicationContext appContext;
+
+    @Autowired
     private ConnectionRepository connectionRepository;
 
     @Value("${spring.application.name}")
@@ -24,12 +29,17 @@ public class CoreService {
     @PostConstruct
     public void postInit() {
         log.info("Application name: {}", applicationName);
-        test();
+        try {
+            test();
+        } catch (Exception e) {
+            log.error("Error initializing Core service, shutting down.", e);
+            SpringApplication.exit(appContext, () -> 1);
+        }
     }
 
     public String test() {
         if (testMongoConnection() == null) {
-            return "Error in mongo connection";
+            throw new RuntimeException("MongoDB connection test failed");
         }
         return "Test successful!";
     }
