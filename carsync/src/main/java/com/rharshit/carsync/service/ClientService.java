@@ -59,16 +59,16 @@ public abstract class ClientService<T extends ClientCarModel> {
      * @return
      */
     public synchronized String startFetchThread() {
-        log.info("Starting to fetch cars from " + getClientName());
+        log.info("Starting to fetch cars from {}", getClientName());
         if (fetchThread == null || !fetchThread.isAlive()) {
             fetchThread = new Thread(() -> {
                 try {
-                    log.info("Fetching cars from " + getClientName());
+                    log.info("Fetching cars from {}", getClientName());
                     long startTime = System.currentTimeMillis();
                     fetchAllCars();
-                    log.info("Fetched cars from " + getClientName() + " in " + (System.currentTimeMillis() - startTime) + "ms");
+                    log.info("Fetched cars from {} in {}ms", getClientName(), System.currentTimeMillis() - startTime);
                 } catch (Exception e) {
-                    log.error("Error fetching cars for " + getClientName(), e);
+                    log.error("Error fetching cars for {}", getClientName(), e);
                 }
             });
             fetchThread.setName("fetchThread-" + getClientId());
