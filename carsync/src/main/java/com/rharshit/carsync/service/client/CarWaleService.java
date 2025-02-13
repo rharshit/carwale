@@ -1,6 +1,7 @@
 package com.rharshit.carsync.service.client;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.rharshit.carsync.common.Utils;
 import com.rharshit.carsync.repository.model.CarModel;
 import com.rharshit.carsync.repository.model.client.CarWaleCarModel;
 import com.rharshit.carsync.service.ClientService;
@@ -40,33 +41,10 @@ public class CarWaleService extends ClientService<CarWaleCarModel> {
                         });
                     }
 
-                    discoveryExecutor.shutdown();
-                    try {
-                        while (!discoveryExecutor.awaitTermination(1000, java.util.concurrent.TimeUnit.NANOSECONDS)) {
-                            Thread.sleep(1000);
-                        }
-                    } catch (InterruptedException e) {
-                        log.error("Error waiting for discovery executor to finish", e);
-                    }
-                    log.info("Fetched list of all cars from CarWale");
+                    Utils.awaitShutdownExecutorService(discoveryExecutor);
+                    Utils.awaitShutdownExecutorService(dbExecutor);
+                    Utils.awaitShutdownExecutorService(fetchExecutor);
 
-                    dbExecutor.shutdown();
-                    try {
-                        while (!dbExecutor.awaitTermination(1000, java.util.concurrent.TimeUnit.NANOSECONDS)) {
-                            Thread.sleep(1000);
-                        }
-                    } catch (InterruptedException e) {
-                        log.error("Error waiting for db executor to finish", e);
-                    }
-
-                    fetchExecutor.shutdown();
-                    try {
-                        while (!fetchExecutor.awaitTermination(1000, java.util.concurrent.TimeUnit.NANOSECONDS)) {
-                            Thread.sleep(1000);
-                        }
-                    } catch (InterruptedException e) {
-                        log.error("Error waiting for fetch executor to finish", e);
-                    }
                     log.info("Fetched all car details from CarWale");
                 }
             }
@@ -114,7 +92,7 @@ public class CarWaleService extends ClientService<CarWaleCarModel> {
                 log.trace("No next page");
             }
         }
-        log.info("Fetched a list of {} cars of {} cars from CarWale", stocks.size(), total);
+        log.info("Fetched a list of {} cars CarWale for city {}", stocks.size(), city);
     }
 
     private void fetchStockDetails(AllCarResponse.Stock stock, ExecutorService fetchExecutor) {
