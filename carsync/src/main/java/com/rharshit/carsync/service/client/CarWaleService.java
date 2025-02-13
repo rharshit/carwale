@@ -103,28 +103,31 @@ public class CarWaleService extends ClientService<CarWaleCarModel> {
                 log.trace("No next page");
             }
         }
-        log.info("Fetched a total of {} cars of {} cars from CarWale", stocks.size(), total);
+        log.info("Fetched a list of {} cars of {} cars from CarWale", stocks.size(), total);
     }
 
     private void fetchStockDetails(AllCarResponse.Stock stock) {
+        log.trace("Fetching details for car : {} {} {}", stock.makeName, stock.modelName, stock.versionName);
+        CarWaleCarModel carModel = new CarWaleCarModel(stock.profileId);
+        populateCarModel(stock, carModel);
+
+        boolean fetched = isCarDetailFetched(carModel.getClientId());
+        if (fetched) {
+            log.trace("Details already fetched for car : {} {} {}", carModel.getMake(), carModel.getModel(), carModel.getVariant());
+            return;
+        }
+        fetchStockDetails(carModel, stock.url);
+    }
+
+    private void fetchStockDetails(CarWaleCarModel carModel, String url) {
         try {
-            log.trace("Fetching details for car : {} {} {}", stock.makeName, stock.modelName, stock.versionName);
             long startTime = System.currentTimeMillis();
-            CarWaleCarModel carModel = new CarWaleCarModel(stock.profileId);
-            populateCarModel(stock, carModel);
-
-            boolean fetched = isCarDetailFetched(carModel.getClientId());
-            if (fetched) {
-                log.trace("Details already fetched for car : {} {} {}", carModel.getMake(), carModel.getModel(), carModel.getVariant());
-                return;
-            }
-
-            String response = getRestClient().get().uri(stock.url).retrieve().body(String.class);
+            String response = getRestClient().get().uri(url).retrieve().body(String.class);
             if (response == null) {
-                log.info("Error fetching details for car : {} {} {} {}. Retrying...", stock.makeName, stock.modelName, stock.versionName, stock.url);
-                response = getRestClient().get().uri(stock.url).retrieve().body(String.class);
+                log.debug("Error fetching details for car : {} {} {} {}. Retrying...", carModel.getMake(), carModel.getModel(), carModel.getVariant(), url);
+                response = getRestClient().get().uri(url).retrieve().body(String.class);
                 if (response == null) {
-                    log.error("Error fetching details for car : {} {} {} {}. Giving up...", stock.makeName, stock.modelName, stock.versionName, stock.url);
+                    log.error("Error fetching details for car : {} {} {} {}. Giving up...", carModel.getMake(), carModel.getModel(), carModel.getVariant(), url);
                     return;
                 }
             }
@@ -141,7 +144,7 @@ public class CarWaleService extends ClientService<CarWaleCarModel> {
             pushCar(carModel);
             log.trace("Fetched details for car : {} {} {} in {}ms", carModel.getMake(), carModel.getModel(), carModel.getVariant(), System.currentTimeMillis() - startTime);
         } catch (Exception e) {
-            log.error("Error fetching details for car : {} {} {} {}", stock.makeName, stock.modelName, stock.versionName, stock.url, e);
+            log.error("Error fetching details for car : {} {} {} {}", carModel.getMake(), carModel.getModel(), carModel.getVariant(), url, e);
         }
 
     }
