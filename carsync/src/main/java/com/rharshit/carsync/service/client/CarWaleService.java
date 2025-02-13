@@ -1,6 +1,7 @@
 package com.rharshit.carsync.service.client;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.rharshit.carsync.common.Utils;
 import com.rharshit.carsync.repository.model.CarModel;
 import com.rharshit.carsync.repository.model.client.CarWaleCarModel;
 import com.rharshit.carsync.service.ClientService;
@@ -12,6 +13,7 @@ import org.jsoup.select.Elements;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
@@ -27,38 +29,30 @@ public class CarWaleService extends ClientService<CarWaleCarModel> {
 
     @Override
     public void fetchAllCars() {
-        ExecutorService discoveryExecutor = Executors.newFixedThreadPool(64);
-        ExecutorService fetchExecutor = Executors.newFixedThreadPool(64);
+        try (ExecutorService discoveryExecutor = Executors.newFixedThreadPool(64)) {
+            try (ExecutorService dbExecutor = Executors.newFixedThreadPool(256)) {
+                try (ExecutorService fetchExecutor = Executors.newFixedThreadPool(32)) {
+                    List<Integer> cities = getCityList();
+                    for (int city : cities) {
+                        discoveryExecutor.execute(() -> {
+                            log.trace("Fetching cars for city : {}", city);
+                            long startTime = System.currentTimeMillis();
+                            fetchCarsForCity(city, dbExecutor, fetchExecutor);
+                            log.trace("Fetched cars for city : {} in {}ms", city, System.currentTimeMillis() - startTime);
+                        });
+                    }
 
-        List<Integer> cities = getCityList();
-        for (int city : cities) {
-            discoveryExecutor.execute(() -> {
-                log.trace("Fetching cars for city : " + city);
-                long startTime = System.currentTimeMillis();
-                fetchCarsForCity(city, fetchExecutor);
-                log.trace("Fetched cars for city : " + city + " in " + (System.currentTimeMillis() - startTime) + "ms");
-            });
-        }
+                    Utils.awaitShutdownExecutorService(discoveryExecutor);
+                    log.info("Discovery executor shutdown");
+                    Utils.awaitShutdownExecutorService(dbExecutor);
+                    log.info("DB executor shutdown");
+                    Utils.awaitShutdownExecutorService(fetchExecutor);
+                    log.info("Fetch executor shutdown");
 
-        discoveryExecutor.shutdown();
-        try {
-            while (!discoveryExecutor.awaitTermination(1000, java.util.concurrent.TimeUnit.NANOSECONDS)) {
-                Thread.sleep(1000);
+                    log.info("Fetched all car details from CarWale");
+                }
             }
-        } catch (InterruptedException e) {
-            log.error("Error waiting for discovery executor to finish", e);
         }
-        log.debug("Fetched list of all cars from CarWale");
-
-        fetchExecutor.shutdown();
-        try {
-            while (!fetchExecutor.awaitTermination(1000, java.util.concurrent.TimeUnit.NANOSECONDS)) {
-                Thread.sleep(1000);
-            }
-        } catch (InterruptedException e) {
-            log.error("Error waiting for fetch executor to finish", e);
-        }
-        log.debug("Fetched all car details from CarWale");
     }
 
     private List<Integer> getCityList() {
@@ -71,62 +65,62 @@ public class CarWaleService extends ClientService<CarWaleCarModel> {
         return new ArrayList<>(cityListResponse.city.stream().map(city -> city.cityId).collect(Collectors.toSet()));
     }
 
-    private void fetchCarsForCity(int city, ExecutorService fetchExecutor) {
-        List<AllCarResponse.Stock> stocks = new ArrayList<>();
+    private void fetchCarsForCity(int city, ExecutorService dbExecutor, ExecutorService fetchExecutor) {
         List<AllCarResponse.Stock> currentStocks;
         int total;
         int fetched;
         AllCarResponse response = getRestClient().post().uri("/api/stocks/filters/")
                 .contentType(APPLICATION_JSON).body("{\"city\":\"" + city + "\",\"pn\":\"1\",\"ps\":\"1000\"}")
                 .retrieve().body(AllCarResponse.class);
+        assert response != null;
         total = response.totalCount;
         currentStocks = response.stocks;
-        stocks.addAll(currentStocks);
-        fetchDetails(currentStocks, fetchExecutor);
+        List<AllCarResponse.Stock> stocks = new ArrayList<>(currentStocks);
+        currentStocks.forEach(stock -> dbExecutor.execute(() -> fetchStockDetails(stock, fetchExecutor)));
         fetched = stocks.size();
         while (!response.stocks.isEmpty() && response.nextPageUrl != null) {
-            log.info((int) getPercentage(total, fetched) + "% : Fetched " + fetched + " cars out of " + total + " from CarWale");
+            log.trace("{}% : Fetched {} cars out of {} from CarWale", (int) getPercentage(total, fetched), fetched, total);
             response = getRestClient().get().uri(response.nextPageUrl)
                     .retrieve().body(AllCarResponse.class);
+            assert response != null;
             total = response.totalCount;
             currentStocks = response.stocks;
             stocks.addAll(currentStocks);
-            fetchDetails(response.stocks, fetchExecutor);
+            currentStocks.forEach(stock -> dbExecutor.execute(() -> fetchStockDetails(stock, fetchExecutor)));
             fetched = stocks.size();
-            log.info("Stock size : " + stocks.size());
-            log.info("Next page  : " + response.nextPageUrl);
+            log.trace("Stock size : {}", stocks.size());
+            log.trace("Next page  : {}", response.nextPageUrl);
             if (response.nextPageUrl != null) {
-                log.info("Fetched    : " + response.nextPageUrl.split("stockfetched=")[1].split("&")[0]);
+                log.trace("Fetched    : {}", response.nextPageUrl.split("stockfetched=")[1].split("&")[0]);
             } else {
-                log.info("No next page");
+                log.trace("No next page");
             }
         }
-        log.info("Fetched a total of " + stocks.size() + " cars of " + total + " cars from CarWale");
+        log.info("Fetched a list of {} cars CarWale for city {}", stocks.size(), city);
     }
 
-    private void fetchDetails(List<AllCarResponse.Stock> currentStocks, ExecutorService fetchExecutor) {
-        currentStocks.forEach(stock -> fetchExecutor.execute(() -> fetchStockDetails(stock)));
+    private void fetchStockDetails(AllCarResponse.Stock stock, ExecutorService fetchExecutor) {
+        log.trace("Fetching details for car : {} {} {}", stock.makeName, stock.modelName, stock.versionName);
+        CarWaleCarModel carModel = new CarWaleCarModel(stock.profileId);
+        populateCarModel(stock, carModel);
+
+        boolean fetched = isCarDetailFetched(carModel.getClientId());
+        if (fetched) {
+            log.trace("Details already fetched for car : {} {} {}", carModel.getMake(), carModel.getModel(), carModel.getVariant());
+            return;
+        }
+        fetchExecutor.execute(() -> fetchStockDetails(carModel, stock.url));
     }
 
-    private void fetchStockDetails(AllCarResponse.Stock stock) {
+    private void fetchStockDetails(CarWaleCarModel carModel, String url) {
         try {
-            log.trace("Fetching details for car : " + stock.makeName + " " + stock.modelName + " " + stock.versionName);
             long startTime = System.currentTimeMillis();
-            CarWaleCarModel carModel = new CarWaleCarModel(stock.profileId);
-            populateCarModel(stock, carModel);
-
-            boolean fetched = isCarDetailFetched(carModel.getClientId());
-            if (fetched) {
-                log.trace("Details already fetched for car : " + carModel.getMake() + " " + carModel.getModel() + " " + carModel.getVariant());
-                return;
-            }
-
-            String response = getRestClient().get().uri(stock.url).retrieve().body(String.class);
+            String response = getRestClient().get().uri(url).retrieve().body(String.class);
             if (response == null) {
-                log.info("Error fetching details for car : " + stock.makeName + " " + stock.modelName + " " + stock.versionName + " " + stock.url + ". Retrying...");
-                response = getRestClient().get().uri(stock.url).retrieve().body(String.class);
+                log.debug("Error fetching details for car : {} {} {} {}. Retrying...", carModel.getMake(), carModel.getModel(), carModel.getVariant(), url);
+                response = getRestClient().get().uri(url).retrieve().body(String.class);
                 if (response == null) {
-                    log.error("Error fetching details for car : " + stock.makeName + " " + stock.modelName + " " + stock.versionName + " " + stock.url + ". Giving up...");
+                    log.error("Error fetching details for car : {} {} {} {}. Giving up...", carModel.getMake(), carModel.getModel(), carModel.getVariant(), url);
                     return;
                 }
             }
@@ -141,14 +135,15 @@ public class CarWaleService extends ClientService<CarWaleCarModel> {
                 }
             }
             pushCar(carModel);
-            log.trace("Fetched details for car : " + carModel.getMake() + " " + carModel.getModel() + " " + carModel.getVariant() + " in " + (System.currentTimeMillis() - startTime) + "ms");
+            log.trace("Fetched details for car : {} {} {} in {}ms", carModel.getMake(), carModel.getModel(), carModel.getVariant(), System.currentTimeMillis() - startTime);
         } catch (Exception e) {
-            log.error("Error fetching details for car : " + stock.makeName + " " + stock.modelName + " " + stock.versionName + " " + stock.url, e);
+            log.error("Error fetching details for car : {} {} {} {}", carModel.getMake(), carModel.getModel(), carModel.getVariant(), url, e);
         }
 
     }
 
     private void populateCarModel(AllCarResponse.Stock stock, CarWaleCarModel carModel) {
+        carModel.setId(carModel.getClientId());
         carModel.setMake(stock.makeName);
         carModel.setModel(stock.modelName);
         carModel.setVariant(stock.versionName);
@@ -159,71 +154,48 @@ public class CarWaleService extends ClientService<CarWaleCarModel> {
     }
 
     private void populateSpecs(CarModel.Specs carSpecs, List<String> webSpecs) {
-        switch (webSpecs.getFirst()) {
-            case "Engine":
-                carSpecs.setEngineType(webSpecs.getLast());
-                try {
+        try {
+            switch (webSpecs.getFirst()) {
+                case "Engine":
+                    carSpecs.setEngineType(webSpecs.getLast());
                     carSpecs.setEngineDisplacement(Integer.parseInt(webSpecs.getLast().split(",")[0].split("cc")[0].strip()));
-                } catch (Exception e) {
-                }
-                break;
-            case "Fuel Type":
-                carSpecs.setFuelType(webSpecs.getLast());
-                break;
-            case "Max Power (bhp@rpm)":
-                try {
+                    break;
+                case "Fuel Type":
+                    carSpecs.setFuelType(webSpecs.getLast());
+                    break;
+                case "Max Power (bhp@rpm)":
                     carSpecs.setEnginePower(Integer.parseInt(webSpecs.getLast().split("@")[0].split("bhp")[0].strip()));
-                } catch (Exception e) {
-                }
-                break;
-            case "Max Torque (Nm@rpm)":
-                try {
+                    break;
+                case "Max Torque (Nm@rpm)":
                     carSpecs.setEngineTorque(Integer.parseInt(webSpecs.getLast().split("@")[0].split("Nm")[0].strip()));
-                } catch (Exception e) {
-                }
-                break;
-            case "Drivetrain":
-                carSpecs.setDrivetrain(webSpecs.getLast());
-                break;
-            case "Transmission":
-                carSpecs.setTransmissionType(webSpecs.getLast());
-                break;
-            case "Length":
-                try {
+                    break;
+                case "Drivetrain":
+                    carSpecs.setDrivetrain(webSpecs.getLast());
+                    break;
+                case "Transmission":
+                    carSpecs.setTransmissionType(webSpecs.getLast());
+                    break;
+                case "Length":
                     carSpecs.setLength(Integer.parseInt(webSpecs.getLast().split("mm")[0].strip()));
-                } catch (Exception e) {
-                }
-                break;
-            case "Width":
-                try {
+                    break;
+                case "Width":
                     carSpecs.setWidth(Integer.parseInt(webSpecs.getLast().split("mm")[0].strip()));
-                } catch (Exception e) {
-                }
-                break;
-            case "Height":
-                try {
+                    break;
+                case "Height":
                     carSpecs.setHeight(Integer.parseInt(webSpecs.getLast().split("mm")[0].strip()));
-                } catch (Exception e) {
-                }
-                break;
-            case "Wheelbase":
-                try {
+                    break;
+                case "Wheelbase":
                     carSpecs.setWheelbase(Integer.parseInt(webSpecs.getLast().split("mm")[0].strip()));
-                } catch (Exception e) {
-                }
-                break;
-            case "Ground Clearance":
-                try {
+                    break;
+                case "Ground Clearance":
                     carSpecs.setGroundClearance(Integer.parseInt(webSpecs.getLast().split("mm")[0].strip()));
-                } catch (Exception e) {
-                }
-                break;
-            case "Kerb Weight":
-                try {
+                    break;
+                case "Kerb Weight":
                     carSpecs.setKerbWeight(Integer.parseInt(webSpecs.getLast().split("kg")[0].strip()));
-                } catch (Exception e) {
-                }
-                break;
+                    break;
+            }
+        } catch (Exception e) {
+            log.trace("Error parsing spec : {}", webSpecs, e);
         }
     }
 

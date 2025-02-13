@@ -67,7 +67,6 @@ public class CoreService {
             return saved.getId();
         } catch (Exception e) {
             log.error("Error saving item", e);
-            e.printStackTrace();
         }
         return null;
     }

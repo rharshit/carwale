@@ -7,7 +7,7 @@ import com.rharshit.carsync.repository.model.ClientCarModel;
 import com.rharshit.carsync.repository.model.MakeModel;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Example;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
@@ -42,6 +42,10 @@ public abstract class ClientService<T extends ClientCarModel> {
 
     protected final List<CarModel> carStagingList = Collections.synchronizedList(new ArrayList<>());
 
+    private static final List<CarModel> carCheckList = Collections.synchronizedList(new ArrayList<>());
+    private static final List<CarModel> carExistList = Collections.synchronizedList(new ArrayList<>());
+    private static final List<CarModel> carNotExistList = Collections.synchronizedList(new ArrayList<>());
+
     protected synchronized RestClient getRestClient() {
         if (restClient == null) {
             restClient = RestClient.builder().baseUrl(getClientDomain()).build();
@@ -55,16 +59,16 @@ public abstract class ClientService<T extends ClientCarModel> {
      * @return
      */
     public synchronized String startFetchThread() {
-        log.info("Starting to fetch cars from " + getClientName());
+        log.info("Starting to fetch cars from {}", getClientName());
         if (fetchThread == null || !fetchThread.isAlive()) {
             fetchThread = new Thread(() -> {
                 try {
-                    log.info("Fetching cars from " + getClientName());
+                    log.info("Fetching cars from {}", getClientName());
                     long startTime = System.currentTimeMillis();
                     fetchAllCars();
-                    log.info("Fetched cars from " + getClientName() + " in " + (System.currentTimeMillis() - startTime) + "ms");
+                    log.info("Fetched cars from {} in {}ms", getClientName(), System.currentTimeMillis() - startTime);
                 } catch (Exception e) {
-                    log.error("Error fetching cars for " + getClientName(), e);
+                    log.error("Error fetching cars for {}", getClientName(), e);
                 }
             });
             fetchThread.setName("fetchThread-" + getClientId());
@@ -114,9 +118,9 @@ public abstract class ClientService<T extends ClientCarModel> {
 
     @Scheduled(fixedDelay = 1)
     public void pushCarsToDB() {
-        List<CarModel> carsToPush = new ArrayList<>();
+        List<CarModel> carsToPush;
         synchronized (carStagingList) {
-            carsToPush.addAll(carStagingList);
+            carsToPush = new ArrayList<>(carStagingList);
             carStagingList.clear();
         }
         if (carsToPush.isEmpty()) {
@@ -126,6 +130,8 @@ public abstract class ClientService<T extends ClientCarModel> {
                 throw new RuntimeException(e);
             }
         } else {
+            long startTime = System.currentTimeMillis();
+            log.info("pushCarsToDB : Pushing {} cars to DB", carsToPush.size());
             boolean pushed = false;
             try {
                 List<CarModel> saved = carModelRepository.saveAll(carsToPush);
@@ -146,6 +152,7 @@ public abstract class ClientService<T extends ClientCarModel> {
                     }
                 }
             }
+            log.info("pushCarsToDB : Pushed {} cars to DB in {}ms", carsToPush.size(), System.currentTimeMillis() - startTime);
         }
     }
 
@@ -153,9 +160,10 @@ public abstract class ClientService<T extends ClientCarModel> {
         if (savedCarModels.isEmpty()) {
             return;
         }
+        log.debug("updateMakeModel : Updating make models");
         List<MakeModel> makesToSave = getMakesToSave(savedCarModels);
         List<MakeModel> savedMakes = makeModelRepository.saveAll(makesToSave);
-        log.info("updateMakeModel : Saved {} makes to DB", savedMakes.size());
+        log.debug("updateMakeModel : Saved {} makes to DB", savedMakes.size());
     }
 
     private List<MakeModel> getMakesToSave(List<CarModel> carModels) {
@@ -183,11 +191,97 @@ public abstract class ClientService<T extends ClientCarModel> {
         return makes;
     }
 
-    // TODO: Optimize this method
     protected boolean isCarDetailFetched(String clientId) {
+        log.trace("Checking if car detail fetched for {}", clientId);
         CarModel carModel = new CarModel();
-        carModel.setClientId(clientId);
-        return carModelRepository.exists(Example.of(carModel));
+        carModel.setId(clientId);
+        log.trace("Adding car {} to list", carModel.getId());
+        synchronized (carCheckList) {
+            carCheckList.add(carModel);
+        }
+        log.trace("Added car {} to list", carModel.getId());
+        checkForCarList();
+        log.trace("Getting fetch details for {}", clientId);
+        return isFetched(carModel);
+    }
+
+    @Async
+    public void checkForCarList() {
+        log.debug("Checking for car list");
+        try {
+            Thread.sleep(100);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        synchronized (carCheckList) {
+            if (carCheckList.isEmpty()) {
+                log.debug("No car to check");
+                return;
+            }
+            log.debug("Checking for car list : {}", carCheckList.size());
+            List<CarModel> carCheckedList = Collections.synchronizedList(new ArrayList<>());
+            List<CarModel> carsFromDb = carModelRepository.findAllById(carCheckList.stream().map(CarModel::getId).toList());
+            carCheckList.forEach(carCheck -> {
+                boolean carExists = false;
+                if (carsFromDb.stream().anyMatch(car -> carCheck.getId().equals(car.getId()))) {
+                    carExistList.add(carCheck);
+                    carExists = true;
+                }
+                if (!carExists) {
+                    carNotExistList.add(carCheck);
+                }
+                carCheckedList.add(carCheck);
+            });
+            log.debug("Checked for car list : {}", carCheckList.size());
+            carCheckList.removeAll(carCheckedList);
+            log.debug("Remaining car list : {}", carCheckList.size());
+        }
+        log.debug("Checked for car list");
+    }
+
+    private boolean isFetched(CarModel carModel) {
+        long fetchTimeout = 20000;
+        long start = System.currentTimeMillis();
+        try {
+            int fetchStatus = 0;
+            while (fetchStatus == 0 && System.currentTimeMillis() - start < fetchTimeout) {
+                synchronized (carExistList) {
+                    synchronized (carNotExistList) {
+                        if (carExistList.stream().anyMatch(car -> carModel.getId().equals(car.getId()))) {
+                            fetchStatus = 1;
+                            carExistList.removeAll(carExistList.stream().filter(car -> carModel.getId().equals(car.getId())).toList());
+                        } else if (carNotExistList.stream().anyMatch(car -> carModel.getId().equals(car.getId()))) {
+                            fetchStatus = -1;
+                            carNotExistList.removeAll(carNotExistList.stream().filter(car -> carModel.getId().equals(car.getId())).toList());
+                        }
+                    }
+                }
+                if (fetchStatus == 0) {
+                    try {
+                        Thread.sleep(100);
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            }
+            switch (fetchStatus) {
+                case 1 -> {
+                    log.trace("Car detail fetched for {}", carModel.getId());
+                    return true;
+                }
+                case -1 -> {
+                    log.trace("Car detail not fetched for {}", carModel.getId());
+                    return false;
+                }
+                default -> {
+                    log.warn("Car detail fetch timeout for " + carModel.getId());
+                    return false;
+                }
+            }
+        } catch (Exception e) {
+            log.error("Error checking car detail fetched", e);
+            return false;
+        }
     }
 
 }

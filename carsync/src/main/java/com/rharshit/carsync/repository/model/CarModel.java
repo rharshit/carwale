@@ -8,7 +8,9 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 
-@Document("carModel")
+import java.util.Objects;
+
+@Document("carModels")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -35,6 +37,18 @@ public class CarModel {
     private String url;
     @NonNull
     private Specs specs = new Specs();
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        CarModel carModel = (CarModel) o;
+        return Objects.equals(id, carModel.id) && Objects.equals(client, carModel.client) && Objects.equals(clientId, carModel.clientId) && Objects.equals(make, carModel.make) && Objects.equals(model, carModel.model) && Objects.equals(variant, carModel.variant) && Objects.equals(year, carModel.year) && Objects.equals(url, carModel.url);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, client, clientId, make, model, variant, year, url);
+    }
 
     @Data
     @NoArgsConstructor

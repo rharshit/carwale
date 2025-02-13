@@ -1,9 +1,11 @@
 package com.rharshit.carsync.repository.model;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import org.springframework.lang.NonNull;
 
+@EqualsAndHashCode(callSuper = true)
 @Data
 @NoArgsConstructor
 public abstract class ClientCarModel extends CarModel {

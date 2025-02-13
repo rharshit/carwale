@@ -3,7 +3,6 @@ package com.rharshit.carsync.service;
 import com.rharshit.carsync.repository.CarModelRepository;
 import com.rharshit.carsync.repository.model.CarModel;
 import com.rharshit.carsync.repository.model.ClientCarModel;
-import com.rharshit.carsync.service.client.CarWaleService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CachePut;
@@ -12,7 +11,6 @@ import org.springframework.stereotype.Service;
 import java.util.Collections;
 import java.util.List;
 
-import static com.rharshit.carsync.common.Constants.CLIENT_ID_CARWALE;
 
 @Slf4j
 @Service
@@ -22,7 +20,7 @@ public class CarService {
     private CarModelRepository carModelRepository;
 
     @Autowired
-    private CarWaleService carWaleService;
+    private CarFactory carFactory;
 
     @CachePut("allCars")
     public List<CarModel> getCars() {
@@ -45,19 +43,11 @@ public class CarService {
     }
 
     public String startFetching(String client) {
-        ClientService<? extends ClientCarModel> clientService = getClientService(client);
+        ClientService<? extends ClientCarModel> clientService = carFactory.getClientService(client);
         if (clientService == null) {
             return "Client not found";
         }
         return clientService.startFetchThread();
     }
 
-    private ClientService<? extends ClientCarModel> getClientService(String client) {
-        switch (client) {
-            case CLIENT_ID_CARWALE:
-                return carWaleService;
-            default:
-                return null;
-        }
-    }
 }
