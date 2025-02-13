@@ -2,10 +2,12 @@ package com.rharshit.carsync.repository.model.client;
 
 import com.rharshit.carsync.repository.model.ClientCarModel;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.springframework.lang.NonNull;
 
 import static com.rharshit.carsync.common.Constants.CLIENT_ID_CARWALE;
 
+@EqualsAndHashCode(callSuper = true)
 @Data
 public class CarWaleCarModel extends ClientCarModel {
 
