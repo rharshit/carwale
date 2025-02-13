@@ -13,7 +13,6 @@ import org.jsoup.select.Elements;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
@@ -70,7 +69,7 @@ public class CarWaleService extends ClientService<CarWaleCarModel> {
         int total;
         int fetched;
         AllCarResponse response = getRestClient().post().uri("/api/stocks/filters/")
-                .contentType(APPLICATION_JSON).body("{\"city\":\"" + city + "\",\"pn\":\"1\",\"ps\":\"1000\"}")
+                .contentType(APPLICATION_JSON).body("{\"pn\":\"1\",\"city\":\"" + city + "\",\"ps\":\"24\",\"sc\":\"-1\",\"so\":\"-1\",\"lcr\":\"24\",\"shouldfetchnearbycars\":\"False\"}")
                 .retrieve().body(AllCarResponse.class);
         assert response != null;
         total = response.totalCount;
