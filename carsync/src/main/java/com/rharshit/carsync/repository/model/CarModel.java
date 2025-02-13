@@ -10,7 +10,7 @@ import org.springframework.lang.Nullable;
 
 import java.util.Objects;
 
-@Document("carModel")
+@Document("carModels")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
