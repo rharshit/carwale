@@ -28,36 +28,47 @@ public class CarWaleService extends ClientService<CarWaleCarModel> {
     @Override
     public void fetchAllCars() {
         try (ExecutorService discoveryExecutor = Executors.newFixedThreadPool(64)) {
-            try (ExecutorService fetchExecutor = Executors.newFixedThreadPool(64)) {
-                List<Integer> cities = getCityList();
-                for (int city : cities) {
-                    discoveryExecutor.execute(() -> {
-                        log.trace("Fetching cars for city : {}", city);
-                        long startTime = System.currentTimeMillis();
-                        fetchCarsForCity(city, fetchExecutor);
-                        log.trace("Fetched cars for city : {} in {}ms", city, System.currentTimeMillis() - startTime);
-                    });
-                }
-
-                discoveryExecutor.shutdown();
-                try {
-                    while (!discoveryExecutor.awaitTermination(1000, java.util.concurrent.TimeUnit.NANOSECONDS)) {
-                        Thread.sleep(1000);
+            try (ExecutorService dbExecutor = Executors.newFixedThreadPool(256)) {
+                try (ExecutorService fetchExecutor = Executors.newFixedThreadPool(32)) {
+                    List<Integer> cities = getCityList();
+                    for (int city : cities) {
+                        discoveryExecutor.execute(() -> {
+                            log.trace("Fetching cars for city : {}", city);
+                            long startTime = System.currentTimeMillis();
+                            fetchCarsForCity(city, dbExecutor, fetchExecutor);
+                            log.trace("Fetched cars for city : {} in {}ms", city, System.currentTimeMillis() - startTime);
+                        });
                     }
-                } catch (InterruptedException e) {
-                    log.error("Error waiting for discovery executor to finish", e);
-                }
-                log.debug("Fetched list of all cars from CarWale");
 
-                fetchExecutor.shutdown();
-                try {
-                    while (!fetchExecutor.awaitTermination(1000, java.util.concurrent.TimeUnit.NANOSECONDS)) {
-                        Thread.sleep(1000);
+                    discoveryExecutor.shutdown();
+                    try {
+                        while (!discoveryExecutor.awaitTermination(1000, java.util.concurrent.TimeUnit.NANOSECONDS)) {
+                            Thread.sleep(1000);
+                        }
+                    } catch (InterruptedException e) {
+                        log.error("Error waiting for discovery executor to finish", e);
                     }
-                } catch (InterruptedException e) {
-                    log.error("Error waiting for fetch executor to finish", e);
+                    log.info("Fetched list of all cars from CarWale");
+
+                    dbExecutor.shutdown();
+                    try {
+                        while (!dbExecutor.awaitTermination(1000, java.util.concurrent.TimeUnit.NANOSECONDS)) {
+                            Thread.sleep(1000);
+                        }
+                    } catch (InterruptedException e) {
+                        log.error("Error waiting for db executor to finish", e);
+                    }
+
+                    fetchExecutor.shutdown();
+                    try {
+                        while (!fetchExecutor.awaitTermination(1000, java.util.concurrent.TimeUnit.NANOSECONDS)) {
+                            Thread.sleep(1000);
+                        }
+                    } catch (InterruptedException e) {
+                        log.error("Error waiting for fetch executor to finish", e);
+                    }
+                    log.info("Fetched all car details from CarWale");
                 }
-                log.debug("Fetched all car details from CarWale");
             }
         }
     }
@@ -72,7 +83,7 @@ public class CarWaleService extends ClientService<CarWaleCarModel> {
         return new ArrayList<>(cityListResponse.city.stream().map(city -> city.cityId).collect(Collectors.toSet()));
     }
 
-    private void fetchCarsForCity(int city, ExecutorService fetchExecutor) {
+    private void fetchCarsForCity(int city, ExecutorService dbExecutor, ExecutorService fetchExecutor) {
         List<AllCarResponse.Stock> currentStocks;
         int total;
         int fetched;
@@ -83,7 +94,7 @@ public class CarWaleService extends ClientService<CarWaleCarModel> {
         total = response.totalCount;
         currentStocks = response.stocks;
         List<AllCarResponse.Stock> stocks = new ArrayList<>(currentStocks);
-        currentStocks.forEach(stock -> fetchExecutor.execute(() -> fetchStockDetails(stock)));
+        currentStocks.forEach(stock -> dbExecutor.execute(() -> fetchStockDetails(stock, fetchExecutor)));
         fetched = stocks.size();
         while (!response.stocks.isEmpty() && response.nextPageUrl != null) {
             log.trace("{}% : Fetched {} cars out of {} from CarWale", (int) getPercentage(total, fetched), fetched, total);
@@ -93,7 +104,7 @@ public class CarWaleService extends ClientService<CarWaleCarModel> {
             total = response.totalCount;
             currentStocks = response.stocks;
             stocks.addAll(currentStocks);
-            currentStocks.forEach(stock -> fetchExecutor.execute(() -> fetchStockDetails(stock)));
+            currentStocks.forEach(stock -> dbExecutor.execute(() -> fetchStockDetails(stock, fetchExecutor)));
             fetched = stocks.size();
             log.trace("Stock size : {}", stocks.size());
             log.trace("Next page  : {}", response.nextPageUrl);
@@ -106,7 +117,7 @@ public class CarWaleService extends ClientService<CarWaleCarModel> {
         log.info("Fetched a list of {} cars of {} cars from CarWale", stocks.size(), total);
     }
 
-    private void fetchStockDetails(AllCarResponse.Stock stock) {
+    private void fetchStockDetails(AllCarResponse.Stock stock, ExecutorService fetchExecutor) {
         log.trace("Fetching details for car : {} {} {}", stock.makeName, stock.modelName, stock.versionName);
         CarWaleCarModel carModel = new CarWaleCarModel(stock.profileId);
         populateCarModel(stock, carModel);
@@ -116,7 +127,7 @@ public class CarWaleService extends ClientService<CarWaleCarModel> {
             log.trace("Details already fetched for car : {} {} {}", carModel.getMake(), carModel.getModel(), carModel.getVariant());
             return;
         }
-        fetchStockDetails(carModel, stock.url);
+        fetchExecutor.execute(() -> fetchStockDetails(carModel, stock.url));
     }
 
     private void fetchStockDetails(CarWaleCarModel carModel, String url) {
