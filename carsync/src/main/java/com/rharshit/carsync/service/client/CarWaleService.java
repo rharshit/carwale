@@ -13,6 +13,7 @@ import org.jsoup.select.Elements;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
@@ -42,8 +43,11 @@ public class CarWaleService extends ClientService<CarWaleCarModel> {
                     }
 
                     Utils.awaitShutdownExecutorService(discoveryExecutor);
+                    log.info("Discovery executor shutdown");
                     Utils.awaitShutdownExecutorService(dbExecutor);
+                    log.info("DB executor shutdown");
                     Utils.awaitShutdownExecutorService(fetchExecutor);
+                    log.info("Fetch executor shutdown");
 
                     log.info("Fetched all car details from CarWale");
                 }

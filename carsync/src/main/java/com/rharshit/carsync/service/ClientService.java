@@ -130,6 +130,8 @@ public abstract class ClientService<T extends ClientCarModel> {
                 throw new RuntimeException(e);
             }
         } else {
+            long startTime = System.currentTimeMillis();
+            log.info("pushCarsToDB : Pushing {} cars to DB", carsToPush.size());
             boolean pushed = false;
             try {
                 List<CarModel> saved = carModelRepository.saveAll(carsToPush);
@@ -150,6 +152,7 @@ public abstract class ClientService<T extends ClientCarModel> {
                     }
                 }
             }
+            log.info("pushCarsToDB : Pushed {} cars to DB in {}ms", carsToPush.size(), System.currentTimeMillis() - startTime);
         }
     }
 
@@ -157,9 +160,10 @@ public abstract class ClientService<T extends ClientCarModel> {
         if (savedCarModels.isEmpty()) {
             return;
         }
+        log.debug("updateMakeModel : Updating make models");
         List<MakeModel> makesToSave = getMakesToSave(savedCarModels);
         List<MakeModel> savedMakes = makeModelRepository.saveAll(makesToSave);
-        log.info("updateMakeModel : Saved {} makes to DB", savedMakes.size());
+        log.debug("updateMakeModel : Saved {} makes to DB", savedMakes.size());
     }
 
     private List<MakeModel> getMakesToSave(List<CarModel> carModels) {
@@ -236,7 +240,7 @@ public abstract class ClientService<T extends ClientCarModel> {
     }
 
     private boolean isFetched(CarModel carModel) {
-        long fetchTimeout = 10000;
+        long fetchTimeout = 20000;
         long start = System.currentTimeMillis();
         try {
             int fetchStatus = 0;
