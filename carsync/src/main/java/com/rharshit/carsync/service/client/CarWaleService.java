@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
 import static com.rharshit.carsync.common.Constants.CLIENT_ID_CARWALE;
 import static com.rharshit.carsync.common.Constants.CLIENT_NAME_CARWALE;
@@ -86,7 +87,7 @@ public class CarWaleService extends ClientService<CarWaleCarModel> {
         currentStocks.forEach(stock -> fetchExecutor.execute(() -> fetchStockDetails(stock)));
         fetched = stocks.size();
         while (!response.stocks.isEmpty() && response.nextPageUrl != null) {
-            log.info((int) getPercentage(total, fetched) + "% : Fetched " + fetched + " cars out of " + total + " from CarWale");
+            log.trace("{}% : Fetched {} cars out of {} from CarWale", (int) getPercentage(total, fetched), fetched, total);
             response = getRestClient().get().uri(response.nextPageUrl)
                     .retrieve().body(AllCarResponse.class);
             assert response != null;
@@ -95,12 +96,12 @@ public class CarWaleService extends ClientService<CarWaleCarModel> {
             stocks.addAll(currentStocks);
             currentStocks.forEach(stock -> fetchExecutor.execute(() -> fetchStockDetails(stock)));
             fetched = stocks.size();
-            log.info("Stock size : " + stocks.size());
-            log.info("Next page  : " + response.nextPageUrl);
+            log.trace("Stock size : {}", stocks.size());
+            log.trace("Next page  : {}", response.nextPageUrl);
             if (response.nextPageUrl != null) {
-                log.info("Fetched    : " + response.nextPageUrl.split("stockfetched=")[1].split("&")[0]);
+                log.trace("Fetched    : {}", response.nextPageUrl.split("stockfetched=")[1].split("&")[0]);
             } else {
-                log.info("No next page");
+                log.trace("No next page");
             }
         }
         log.info("Fetched a total of {} cars of {} cars from CarWale", stocks.size(), total);

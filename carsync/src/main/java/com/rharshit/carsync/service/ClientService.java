@@ -114,9 +114,9 @@ public abstract class ClientService<T extends ClientCarModel> {
 
     @Scheduled(fixedDelay = 1)
     public void pushCarsToDB() {
-        List<CarModel> carsToPush = new ArrayList<>();
+        List<CarModel> carsToPush;
         synchronized (carStagingList) {
-            carsToPush.addAll(carStagingList);
+            carsToPush = new ArrayList<>(carStagingList);
             carStagingList.clear();
         }
         if (carsToPush.isEmpty()) {
