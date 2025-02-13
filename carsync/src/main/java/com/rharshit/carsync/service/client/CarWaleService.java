@@ -16,7 +16,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.stream.Collectors;
 
 import static com.rharshit.carsync.common.Constants.CLIENT_ID_CARWALE;
 import static com.rharshit.carsync.common.Constants.CLIENT_NAME_CARWALE;
@@ -148,6 +147,7 @@ public class CarWaleService extends ClientService<CarWaleCarModel> {
     }
 
     private void populateCarModel(AllCarResponse.Stock stock, CarWaleCarModel carModel) {
+        carModel.setId(carModel.getClientId());
         carModel.setMake(stock.makeName);
         carModel.setModel(stock.modelName);
         carModel.setVariant(stock.versionName);

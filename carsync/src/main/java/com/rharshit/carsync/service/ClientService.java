@@ -7,7 +7,7 @@ import com.rharshit.carsync.repository.model.ClientCarModel;
 import com.rharshit.carsync.repository.model.MakeModel;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Example;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
@@ -41,6 +41,10 @@ public abstract class ClientService<T extends ClientCarModel> {
     public abstract void fetchAllCars();
 
     protected final List<CarModel> carStagingList = Collections.synchronizedList(new ArrayList<>());
+
+    private static final List<CarModel> carCheckList = Collections.synchronizedList(new ArrayList<>());
+    private static final List<CarModel> carExistList = Collections.synchronizedList(new ArrayList<>());
+    private static final List<CarModel> carNotExistList = Collections.synchronizedList(new ArrayList<>());
 
     protected synchronized RestClient getRestClient() {
         if (restClient == null) {
@@ -183,11 +187,97 @@ public abstract class ClientService<T extends ClientCarModel> {
         return makes;
     }
 
-    // TODO: Optimize this method
     protected boolean isCarDetailFetched(String clientId) {
+        log.trace("Checking if car detail fetched for {}", clientId);
         CarModel carModel = new CarModel();
-        carModel.setClientId(clientId);
-        return carModelRepository.exists(Example.of(carModel));
+        carModel.setId(clientId);
+        log.trace("Adding car {} to list", carModel.getId());
+        synchronized (carCheckList) {
+            carCheckList.add(carModel);
+        }
+        log.trace("Added car {} to list", carModel.getId());
+        checkForCarList();
+        log.trace("Getting fetch details for {}", clientId);
+        return isFetched(carModel);
+    }
+
+    @Async
+    public void checkForCarList() {
+        log.debug("Checking for car list");
+        try {
+            Thread.sleep(100);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        synchronized (carCheckList) {
+            if (carCheckList.isEmpty()) {
+                log.debug("No car to check");
+                return;
+            }
+            log.debug("Checking for car list : {}", carCheckList.size());
+            List<CarModel> carCheckedList = Collections.synchronizedList(new ArrayList<>());
+            List<CarModel> carsFromDb = carModelRepository.findAllById(carCheckList.stream().map(CarModel::getId).toList());
+            carCheckList.forEach(carCheck -> {
+                boolean carExists = false;
+                if (carsFromDb.stream().anyMatch(car -> carCheck.getId().equals(car.getId()))) {
+                    carExistList.add(carCheck);
+                    carExists = true;
+                }
+                if (!carExists) {
+                    carNotExistList.add(carCheck);
+                }
+                carCheckedList.add(carCheck);
+            });
+            log.debug("Checked for car list : {}", carCheckList.size());
+            carCheckList.removeAll(carCheckedList);
+            log.debug("Remaining car list : {}", carCheckList.size());
+        }
+        log.debug("Checked for car list");
+    }
+
+    private boolean isFetched(CarModel carModel) {
+        long fetchTimeout = 10000;
+        long start = System.currentTimeMillis();
+        try {
+            int fetchStatus = 0;
+            while (fetchStatus == 0 && System.currentTimeMillis() - start < fetchTimeout) {
+                synchronized (carExistList) {
+                    synchronized (carNotExistList) {
+                        if (carExistList.stream().anyMatch(car -> carModel.getId().equals(car.getId()))) {
+                            fetchStatus = 1;
+                            carExistList.removeAll(carExistList.stream().filter(car -> carModel.getId().equals(car.getId())).toList());
+                        } else if (carNotExistList.stream().anyMatch(car -> carModel.getId().equals(car.getId()))) {
+                            fetchStatus = -1;
+                            carNotExistList.removeAll(carNotExistList.stream().filter(car -> carModel.getId().equals(car.getId())).toList());
+                        }
+                    }
+                }
+                if (fetchStatus == 0) {
+                    try {
+                        Thread.sleep(100);
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            }
+            switch (fetchStatus) {
+                case 1 -> {
+                    log.trace("Car detail fetched for {}", carModel.getId());
+                    return true;
+                }
+                case -1 -> {
+                    log.trace("Car detail not fetched for {}", carModel.getId());
+                    return false;
+                }
+                default -> {
+                    log.warn("Car detail fetch timeout for " + carModel.getId());
+                    return false;
+                }
+            }
+        } catch (Exception e) {
+            log.error("Error checking car detail fetched", e);
+            return false;
+        }
     }
 
 }
