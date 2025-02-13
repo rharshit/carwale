@@ -30,7 +30,7 @@ public class CarWaleService extends ClientService<CarWaleCarModel> {
     public void fetchAllCars() {
         try (ExecutorService discoveryExecutor = Executors.newFixedThreadPool(64)) {
             try (ExecutorService dbExecutor = Executors.newFixedThreadPool(256)) {
-                try (ExecutorService fetchExecutor = Executors.newFixedThreadPool(32)) {
+                try (ExecutorService fetchExecutor = Executors.newFixedThreadPool(64)) {
                     List<Integer> cities = getCityList();
                     for (int city : cities) {
                         discoveryExecutor.execute(() -> {
@@ -61,7 +61,7 @@ public class CarWaleService extends ClientService<CarWaleCarModel> {
         if (cityListResponse == null || cityListResponse.city == null) {
             return new ArrayList<>();
         }
-        return new ArrayList<>(cityListResponse.city.stream().map(city -> city.cityId).collect(Collectors.toSet()));
+        return cityListResponse.city.stream().map(city -> city.cityId).distinct().toList();
     }
 
     private void fetchCarsForCity(int city, ExecutorService dbExecutor, ExecutorService fetchExecutor) {
