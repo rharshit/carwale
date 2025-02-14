@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.rharshit.carsync.common.Utils;
 import com.rharshit.carsync.repository.model.CarModel;
 import com.rharshit.carsync.repository.model.client.CarWaleCarModel;
+import com.rharshit.carsync.service.CarService;
 import com.rharshit.carsync.service.ClientService;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
@@ -11,6 +12,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,7 +32,7 @@ public class CarWaleService extends ClientService<CarWaleCarModel> {
     public void fetchAllCars() {
         try (ExecutorService discoveryExecutor = Executors.newFixedThreadPool(64)) {
             try (ExecutorService dbExecutor = Executors.newFixedThreadPool(256)) {
-                try (ExecutorService fetchExecutor = Executors.newFixedThreadPool(32)) {
+                try (ExecutorService fetchExecutor = Executors.newFixedThreadPool(64)) {
                     List<Integer> cities = getCityList();
                     for (int city : cities) {
                         discoveryExecutor.execute(() -> {
@@ -54,6 +56,52 @@ public class CarWaleService extends ClientService<CarWaleCarModel> {
         }
     }
 
+    /**
+     * Fix all cars data from the client
+     */
+    @Override
+    protected void fixAllCars(CarService carService) {
+        log.info("Fixing all cars from CarWale");
+        addCityDetails(carService);
+    }
+
+    private void addCityDetails(CarService carService) {
+        long startTime = System.currentTimeMillis();
+        int pushSize = 500;
+        int pushedSize = 0;
+        int totalSize = 0;
+        log.info("Adding city details to cars from CarWale");
+        log.info("Getting cars to push");
+        List<CarModel> carModels = getAllCarsWithoutCity(carService);
+        log.info("Got {} cars without city", carModels.size());
+        List<CarModel> fixedCars = carModels.stream().filter(carModel -> carModel.getCity() == null).toList();
+        totalSize = fixedCars.size();
+        log.info("Got {} cars to fix", totalSize);
+        fixedCars.forEach(carModel -> {
+            String url = carModel.getUrl();
+            String domain = getClientDomain();
+            String urlParams = url.split(domain)[1];
+            while (urlParams.startsWith("/")) {
+                urlParams = urlParams.substring(1);
+            }
+            String[] urlParts = urlParams.split("/");
+            carModel.setCity(StringUtils.capitalize(urlParts[1]));
+        });
+        while (!fixedCars.isEmpty()) {
+            List<CarModel> toPush = fixedCars.stream().limit(pushSize).toList();
+            carModelRepository.saveAll(toPush);
+            pushedSize += toPush.size();
+            fixedCars = fixedCars.stream().skip(pushSize).toList();
+            log.info("Pushed {}%, {} cars out of {} to CarWale", pushedSize * 100 / totalSize, pushedSize, totalSize);
+        }
+        log.info("Pushed {} cars to CarWale", totalSize);
+        log.info("Added city details to all cars from CarWale in {}ms", System.currentTimeMillis() - startTime);
+    }
+
+    private List<CarModel> getAllCarsWithoutCity(CarService carService) {
+        return carModelRepository.findCarsWithoutCity();
+    }
+
     private List<Integer> getCityList() {
         CityListResponse cityListResponse = getRestClient().post().uri("/api/used-search/filters/")
                 .contentType(APPLICATION_JSON).body("{}")
@@ -61,7 +109,7 @@ public class CarWaleService extends ClientService<CarWaleCarModel> {
         if (cityListResponse == null || cityListResponse.city == null) {
             return new ArrayList<>();
         }
-        return new ArrayList<>(cityListResponse.city.stream().map(city -> city.cityId).collect(Collectors.toSet()));
+        return cityListResponse.city.stream().map(city -> city.cityId).distinct().toList();
     }
 
     private void fetchCarsForCity(int city, ExecutorService dbExecutor, ExecutorService fetchExecutor) {

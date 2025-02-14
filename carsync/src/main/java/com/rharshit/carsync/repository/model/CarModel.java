@@ -21,6 +21,7 @@ public class CarModel {
     private String client;
     @NonNull
     private String clientId;
+    private String city;
     @NonNull
     private String make;
     @NonNull
