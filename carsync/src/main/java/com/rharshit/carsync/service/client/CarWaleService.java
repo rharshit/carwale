@@ -2,7 +2,6 @@ package com.rharshit.carsync.service.client;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.rharshit.carsync.common.Utils;
-import com.rharshit.carsync.repository.model.CarFilter;
 import com.rharshit.carsync.repository.model.CarModel;
 import com.rharshit.carsync.repository.model.client.CarWaleCarModel;
 import com.rharshit.carsync.service.CarService;
@@ -74,9 +73,10 @@ public class CarWaleService extends ClientService<CarWaleCarModel> {
         log.info("Adding city details to cars from CarWale");
         log.info("Getting cars to push");
         List<CarModel> carModels = getAllCarsWithoutCity(carService);
-        totalSize = carModels.size();
         log.info("Got {} cars without city", carModels.size());
         List<CarModel> fixedCars = carModels.stream().filter(carModel -> carModel.getCity() == null).toList();
+        totalSize = fixedCars.size();
+        log.info("Got {} cars to fix", totalSize);
         fixedCars.forEach(carModel -> {
             String url = carModel.getUrl();
             String domain = getClientDomain();
@@ -98,9 +98,8 @@ public class CarWaleService extends ClientService<CarWaleCarModel> {
         log.info("Added city details to all cars from CarWale in {}ms", System.currentTimeMillis() - startTime);
     }
 
-    //TODO: Create new filter for this method
     private List<CarModel> getAllCarsWithoutCity(CarService carService) {
-        return carService.getCars(new CarFilter());
+        return carModelRepository.findCarsWithoutCity();
     }
 
     private List<Integer> getCityList() {

@@ -78,4 +78,7 @@ public interface CarModelRepository extends MongoRepository<CarModel, String> {
                                 Integer minWidth, Integer maxWidth,
                                 Integer minHeight, Integer maxHeight,
                                 Integer minWheelbase, Integer maxWheelbase);
+
+    @Query("{'city' : { $exists: false }}")
+    List<CarModel> findCarsWithoutCity();
 }
