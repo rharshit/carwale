@@ -21,7 +21,7 @@ import java.util.List;
 public abstract class ClientService<T extends ClientCarModel> {
 
     @Autowired
-    private CarModelRepository carModelRepository;
+    protected CarModelRepository carModelRepository;
 
     @Autowired
     private MakeModelRepository makeModelRepository;
@@ -29,6 +29,8 @@ public abstract class ClientService<T extends ClientCarModel> {
     protected final List<CarModel> carPushList = Collections.synchronizedList(new ArrayList<>());
 
     private Thread fetchThread;
+
+    private Thread fixThread;
 
     private RestClient restClient;
 
@@ -39,6 +41,8 @@ public abstract class ClientService<T extends ClientCarModel> {
     public abstract String getClientDomain();
 
     public abstract void fetchAllCars();
+
+    protected abstract void fixAllCars(CarService carService);
 
     protected final List<CarModel> carStagingList = Collections.synchronizedList(new ArrayList<>());
 
@@ -100,7 +104,7 @@ public abstract class ClientService<T extends ClientCarModel> {
      *
      * @param carModels
      */
-    protected void pushCar(List<CarModel> carModels) {
+    protected void pushCars(List<CarModel> carModels) {
         synchronized (carPushList) {
             carPushList.addAll(carModels);
         }
@@ -284,4 +288,24 @@ public abstract class ClientService<T extends ClientCarModel> {
         }
     }
 
+    public String startFixThread(CarService carService) {
+        log.info("Starting to fix cars from {}", getClientName());
+        if (fixThread == null || !fixThread.isAlive()) {
+            fixThread = new Thread(() -> {
+                try {
+                    log.info("Fixing cars from {}", getClientName());
+                    long startTime = System.currentTimeMillis();
+                    fixAllCars(carService);
+                    log.info("Fixed cars from {} in {}ms", getClientName(), System.currentTimeMillis() - startTime);
+                } catch (Exception e) {
+                    log.error("Error fixing cars for {}", getClientName(), e);
+                }
+            });
+            fixThread.setName("fixThread-" + getClientId());
+            fixThread.start();
+            return "Started fixing cars from " + getClientName();
+        } else {
+            return "Already fixing cars from " + getClientName();
+        }
+    }
 }

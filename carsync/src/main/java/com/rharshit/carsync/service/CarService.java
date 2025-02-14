@@ -50,4 +50,12 @@ public class CarService {
         return clientService.startFetchThread();
     }
 
+    public String startFixing(String client) {
+        ClientService<? extends ClientCarModel> clientService = carFactory.getClientService(client);
+        if (clientService == null) {
+            return "Client not found";
+        }
+        return clientService.startFixThread(this);
+    }
+
 }

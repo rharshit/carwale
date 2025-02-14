@@ -24,7 +24,7 @@ public abstract class ClientCarModel extends CarModel {
     }
 
     public CarModel generateCarModel() {
-        return new CarModel(getId(), getClient(), getClientId(), getMake(), getModel(), getVariant(), getYear(),
+        return new CarModel(getId(), getClient(), getClientId(), getCity(), getMake(), getModel(), getVariant(), getYear(),
                 getPrice(), getMileage(), getUrl(), getSpecs());
     }
 }

@@ -18,4 +18,9 @@ public class ClientController {
     public String startFetching(@PathVariable String client) {
         return carService.startFetching(client);
     }
+
+    @PostMapping("/{client}/fix")
+    public String startFixing(@PathVariable String client) {
+        return carService.startFixing(client);
+    }
 }
