@@ -1,9 +1,13 @@
 package com.rharshit.carsync.controller;
 
+import com.rharshit.carsync.repository.model.CarFilter;
 import com.rharshit.carsync.repository.model.CarModel;
 import com.rharshit.carsync.service.CarService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
@@ -14,12 +18,12 @@ public class CarController {
     @Autowired
     private CarService service;
 
-    @GetMapping
-    public List<CarModel> getCars() {
-        return service.getCars();
+    @PostMapping
+    public List<CarModel> getCars(@RequestBody CarFilter carFilter) {
+        return service.getCars(carFilter);
     }
 
-    @PostMapping
+    @PostMapping("/add")
     public boolean addCar(@RequestBody List<CarModel> carModels) {
         return service.addCar(carModels);
     }
