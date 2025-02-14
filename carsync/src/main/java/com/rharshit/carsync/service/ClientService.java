@@ -202,7 +202,7 @@ public abstract class ClientService<T extends ClientCarModel> {
         log.trace("Added car {} to list", carModel.getId());
         checkForCarList();
         log.trace("Getting fetch details for {}", clientId);
-        return isFetched(carModel);
+        return isFetched(carModel, true);
     }
 
     @Async
@@ -239,12 +239,12 @@ public abstract class ClientService<T extends ClientCarModel> {
         log.debug("Checked for car list");
     }
 
-    private boolean isFetched(CarModel carModel) {
+    private boolean isFetched(CarModel carModel, boolean timeout) {
         long fetchTimeout = 20000;
         long start = System.currentTimeMillis();
         try {
             int fetchStatus = 0;
-            while (fetchStatus == 0 && System.currentTimeMillis() - start < fetchTimeout) {
+            while (fetchStatus == 0 && (!timeout || System.currentTimeMillis() - start < fetchTimeout)) {
                 synchronized (carExistList) {
                     synchronized (carNotExistList) {
                         if (carExistList.stream().anyMatch(car -> carModel.getId().equals(car.getId()))) {
