@@ -76,6 +76,24 @@ const MainLayout: React.FC = () => {
     ]
 
     const [collapsedSidebar, setCollapsedSideBar] = React.useState<boolean>(true);
+    const [openKeys, setOpenKeys] = React.useState<string[]>([]);
+    const rootSubmenuKeys = navItems.map(item => item?.key);
+
+    const onOpenChange: MenuProps['onOpenChange'] = keys => {
+        if (collapsedSidebar) {
+            return;
+        }
+        if (keys.length === 0) {
+            setOpenKeys([]);
+            return;
+        }
+        const latestOpenKey = keys.find(key => openKeys.indexOf(key) === -1)?.split('/')[0];
+        if (rootSubmenuKeys.indexOf(latestOpenKey!) === -1) {
+            setOpenKeys(keys);
+        } else {
+            setOpenKeys(latestOpenKey ? [latestOpenKey] : []);
+        }
+    };
 
     return (
         <Flex vertical justify='center' align='center'
@@ -139,6 +157,9 @@ const MainLayout: React.FC = () => {
                         inlineCollapsed={collapsedSidebar}
                         triggerSubMenuAction='click'
                         items={navItems}
+                        openKeys={!collapsedSidebar ? openKeys : []}
+                        onOpenChange={onOpenChange}
+                        onSelect={({ key }) => onOpenChange([key])}
                         style={{
                             border: 0,
                         }}
