@@ -9,12 +9,21 @@ import {
 } from '@ant-design/icons';
 import { Flex, Layout, Menu, MenuProps, theme, Typography } from 'antd';
 import React from 'react';
+import { Route, Routes, useNavigate } from 'react-router-dom';
+import CarWalePage from './fetch/CarWalePage';
+import HomePage from './home/HomePage';
+import ListAllPage from './view-data/ListAllPage';
+import ShowSpecsPage from './view-data/ShowSpecsPage';
+import ViewGraphPage from './view-data/ViewGraphPage';
+
 
 const { Title } = Typography;
 
 const { Header, Sider } = Layout;
 
 const MainLayout: React.FC = () => {
+    const navigate = useNavigate();
+
     const {
         token: { colorBgContainer, borderRadiusLG },
     } = theme.useToken();
@@ -24,6 +33,7 @@ const MainLayout: React.FC = () => {
             key: 'home',
             icon: <HomeOutlined />,
             label: 'Home',
+            onClick: () => navigate('/home')
         },
         {
             key: 'view-data',
@@ -34,16 +44,19 @@ const MainLayout: React.FC = () => {
                     key: 'view-data/list-all',
                     label: 'List all',
                     icon: <BarsOutlined />,
+                    onClick: () => navigate('/view-data/list-all')
                 },
                 {
                     key: 'view-data/view-graph',
                     label: 'View graph',
-                    icon: <DotChartOutlined />
+                    icon: <DotChartOutlined />,
+                    onClick: () => navigate('/view-data/view-graph')
                 },
                 {
                     key: 'view-data/show-specs',
                     label: 'Show specs',
-                    icon: <DashboardOutlined />
+                    icon: <DashboardOutlined />,
+                    onClick: () => navigate('/view-data/show-specs')
                 },
             ]
         },
@@ -55,7 +68,8 @@ const MainLayout: React.FC = () => {
                 {
                     key: 'fetch-data/carwale',
                     label: 'CarWale',
-                    icon: <CarOutlined />
+                    icon: <CarOutlined />,
+                    onClick: () => navigate('/fetch-data/carwale')
                 }
             ]
         }
@@ -134,6 +148,7 @@ const MainLayout: React.FC = () => {
                     backgroundColor: 'white',
                     margin: 0,
                     height: '100%',
+                    padding: 24,
                     overflow: 'auto',
                     position: 'sticky',
                     insetInlineStart: 0,
@@ -148,7 +163,14 @@ const MainLayout: React.FC = () => {
                     scrollbarWidth: 'thin',
                     scrollbarGutter: 'stable',
                 }}>
-                    <Title level={4} style={{ margin: 16 }} >Welcome to CarSync home</Title>
+                    <Routes>
+                        <Route path='/' element={<HomePage />} />
+                        <Route path='/home' element={<HomePage />} />
+                        <Route path='/view-data/list-all' element={<ListAllPage />} />
+                        <Route path='/view-data/view-graph' element={<ViewGraphPage />} />
+                        <Route path='/view-data/show-specs' element={<ShowSpecsPage />} />
+                        <Route path='/fetch-data/carwale' element={<CarWalePage />} />
+                    </Routes>
                 </Layout>
             </Layout>
         </Flex>
