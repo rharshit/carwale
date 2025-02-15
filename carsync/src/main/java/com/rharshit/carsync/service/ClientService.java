@@ -42,7 +42,7 @@ public abstract class ClientService<T extends ClientCarModel> {
 
     public abstract void fetchAllCars();
 
-    protected abstract void fixAllCars(CarService carService);
+    protected abstract void fixAllCars();
 
     protected final List<CarModel> carStagingList = Collections.synchronizedList(new ArrayList<>());
 
@@ -288,14 +288,14 @@ public abstract class ClientService<T extends ClientCarModel> {
         }
     }
 
-    public String startFixThread(CarService carService) {
+    public String startFixThread() {
         log.info("Starting to fix cars from {}", getClientName());
         if (fixThread == null || !fixThread.isAlive()) {
             fixThread = new Thread(() -> {
                 try {
                     log.info("Fixing cars from {}", getClientName());
                     long startTime = System.currentTimeMillis();
-                    fixAllCars(carService);
+                    fixAllCars();
                     log.info("Fixed cars from {} in {}ms", getClientName(), System.currentTimeMillis() - startTime);
                 } catch (Exception e) {
                     log.error("Error fixing cars for {}", getClientName(), e);

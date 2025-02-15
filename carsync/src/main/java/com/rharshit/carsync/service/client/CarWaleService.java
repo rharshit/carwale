@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.rharshit.carsync.common.Utils;
 import com.rharshit.carsync.repository.model.CarModel;
 import com.rharshit.carsync.repository.model.client.CarWaleCarModel;
-import com.rharshit.carsync.service.CarService;
 import com.rharshit.carsync.service.ClientService;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
@@ -60,9 +59,9 @@ public class CarWaleService extends ClientService<CarWaleCarModel> {
      * Fix all cars data from the client
      */
     @Override
-    protected void fixAllCars(CarService carService) {
+    protected void fixAllCars() {
         log.info("Fixing all cars from CarWale");
-        addCityDetails(carService);
+        addCityDetails();
     }
 
     private String getCityFromUrl(String url) {
@@ -75,14 +74,14 @@ public class CarWaleService extends ClientService<CarWaleCarModel> {
         return StringUtils.capitalize(urlParts[1]);
     }
 
-    private void addCityDetails(CarService carService) {
+    private void addCityDetails() {
         long startTime = System.currentTimeMillis();
         int pushSize = 500;
         int pushedSize = 0;
         int totalSize = 0;
         log.info("Adding city details to cars from CarWale");
         log.info("Getting cars to push");
-        List<CarModel> carModels = getAllCarsWithoutCity(carService);
+        List<CarModel> carModels = getAllCarsWithoutCity();
         log.info("Got {} cars without city", carModels.size());
         List<CarModel> fixedCars = carModels.stream().filter(carModel -> carModel.getCity() == null).toList();
         totalSize = fixedCars.size();
@@ -101,7 +100,7 @@ public class CarWaleService extends ClientService<CarWaleCarModel> {
         log.info("Added city details to all cars from CarWale in {}ms", System.currentTimeMillis() - startTime);
     }
 
-    private List<CarModel> getAllCarsWithoutCity(CarService carService) {
+    private List<CarModel> getAllCarsWithoutCity() {
         return carModelRepository.findCarsWithoutCity();
     }
 
