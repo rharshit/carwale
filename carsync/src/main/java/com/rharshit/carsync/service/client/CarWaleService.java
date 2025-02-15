@@ -65,6 +65,16 @@ public class CarWaleService extends ClientService<CarWaleCarModel> {
         addCityDetails(carService);
     }
 
+    private String getCityFromUrl(String url) {
+        String domain = getClientDomain();
+        String urlParams = url.split(domain)[1];
+        while (urlParams.startsWith("/")) {
+            urlParams = urlParams.substring(1);
+        }
+        String[] urlParts = urlParams.split("/");
+        return StringUtils.capitalize(urlParts[1]);
+    }
+
     private void addCityDetails(CarService carService) {
         long startTime = System.currentTimeMillis();
         int pushSize = 500;
@@ -78,14 +88,7 @@ public class CarWaleService extends ClientService<CarWaleCarModel> {
         totalSize = fixedCars.size();
         log.info("Got {} cars to fix", totalSize);
         fixedCars.forEach(carModel -> {
-            String url = carModel.getUrl();
-            String domain = getClientDomain();
-            String urlParams = url.split(domain)[1];
-            while (urlParams.startsWith("/")) {
-                urlParams = urlParams.substring(1);
-            }
-            String[] urlParts = urlParams.split("/");
-            carModel.setCity(StringUtils.capitalize(urlParts[1]));
+            carModel.setCity(getCityFromUrl(carModel.getUrl()));
         });
         while (!fixedCars.isEmpty()) {
             List<CarModel> toPush = fixedCars.stream().limit(pushSize).toList();
@@ -191,6 +194,7 @@ public class CarWaleService extends ClientService<CarWaleCarModel> {
 
     private void populateCarModel(AllCarResponse.Stock stock, CarWaleCarModel carModel) {
         carModel.setId(carModel.getClientId());
+        carModel.setCity(getCityFromUrl(getClientDomain() + stock.url));
         carModel.setMake(stock.makeName);
         carModel.setModel(stock.modelName);
         carModel.setVariant(stock.versionName);
