@@ -1,8 +1,10 @@
+import MainLayout from "./pages/MainLayout";
+
 function App() {
 
   return (
     <>
-      <h1>CarSync UI</h1>
+      <MainLayout />
     </>
   )
 }
