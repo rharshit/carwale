@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.rharshit.carsync.common.Utils;
 import com.rharshit.carsync.repository.model.CarModel;
 import com.rharshit.carsync.repository.model.client.CarWaleCarModel;
-import com.rharshit.carsync.service.CarService;
 import com.rharshit.carsync.service.ClientService;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
@@ -60,32 +59,35 @@ public class CarWaleService extends ClientService<CarWaleCarModel> {
      * Fix all cars data from the client
      */
     @Override
-    protected void fixAllCars(CarService carService) {
+    protected void fixAllCars() {
         log.info("Fixing all cars from CarWale");
-        addCityDetails(carService);
+        addCityDetails();
     }
 
-    private void addCityDetails(CarService carService) {
+    private String getCityFromUrl(String url) {
+        String domain = getClientDomain();
+        String urlParams = url.split(domain)[1];
+        while (urlParams.startsWith("/")) {
+            urlParams = urlParams.substring(1);
+        }
+        String[] urlParts = urlParams.split("/");
+        return StringUtils.capitalize(urlParts[1]);
+    }
+
+    private void addCityDetails() {
         long startTime = System.currentTimeMillis();
         int pushSize = 500;
         int pushedSize = 0;
         int totalSize = 0;
         log.info("Adding city details to cars from CarWale");
         log.info("Getting cars to push");
-        List<CarModel> carModels = getAllCarsWithoutCity(carService);
+        List<CarModel> carModels = getAllCarsWithoutCity();
         log.info("Got {} cars without city", carModels.size());
         List<CarModel> fixedCars = carModels.stream().filter(carModel -> carModel.getCity() == null).toList();
         totalSize = fixedCars.size();
         log.info("Got {} cars to fix", totalSize);
         fixedCars.forEach(carModel -> {
-            String url = carModel.getUrl();
-            String domain = getClientDomain();
-            String urlParams = url.split(domain)[1];
-            while (urlParams.startsWith("/")) {
-                urlParams = urlParams.substring(1);
-            }
-            String[] urlParts = urlParams.split("/");
-            carModel.setCity(StringUtils.capitalize(urlParts[1]));
+            carModel.setCity(getCityFromUrl(carModel.getUrl()));
         });
         while (!fixedCars.isEmpty()) {
             List<CarModel> toPush = fixedCars.stream().limit(pushSize).toList();
@@ -98,7 +100,7 @@ public class CarWaleService extends ClientService<CarWaleCarModel> {
         log.info("Added city details to all cars from CarWale in {}ms", System.currentTimeMillis() - startTime);
     }
 
-    private List<CarModel> getAllCarsWithoutCity(CarService carService) {
+    private List<CarModel> getAllCarsWithoutCity() {
         return carModelRepository.findCarsWithoutCity();
     }
 
@@ -191,6 +193,7 @@ public class CarWaleService extends ClientService<CarWaleCarModel> {
 
     private void populateCarModel(AllCarResponse.Stock stock, CarWaleCarModel carModel) {
         carModel.setId(carModel.getClientId());
+        carModel.setCity(getCityFromUrl(getClientDomain() + stock.url));
         carModel.setMake(stock.makeName);
         carModel.setModel(stock.modelName);
         carModel.setVariant(stock.versionName);

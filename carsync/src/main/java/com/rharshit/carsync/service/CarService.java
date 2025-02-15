@@ -139,7 +139,7 @@ public class CarService {
         if (clientService == null) {
             return "Client not found";
         }
-        return clientService.startFixThread(this);
+        return clientService.startFixThread();
     }
 
 }
