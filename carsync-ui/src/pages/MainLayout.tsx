@@ -7,7 +7,7 @@ import {
     FileSyncOutlined,
     HomeOutlined
 } from '@ant-design/icons';
-import { Flex, Layout, Menu, MenuProps, theme, Typography } from 'antd';
+import { ConfigProvider, Flex, Layout, Menu, MenuProps, theme, Typography } from 'antd';
 import React, { useEffect } from 'react';
 import { Route, Routes, useNavigate } from 'react-router-dom';
 import CarWalePage from './fetch/CarWalePage';
@@ -167,19 +167,31 @@ const MainLayout: React.FC = () => {
                         scrollbarWidth: 'thin',
                         scrollbarGutter: 'stable',
                     }}>
-                    <Menu
-                        mode="inline"
-                        inlineCollapsed={collapsedSidebar}
-                        triggerSubMenuAction='click'
-                        items={navItems}
-                        selectedKeys={selectedKeys}
-                        openKeys={!collapsedSidebar ? openKeys : []}
-                        onOpenChange={onOpenChange}
-                        onSelect={({ key }) => updateSelectedKeys([key], false)}
-                        style={{
-                            border: 0,
-                        }}
-                    />
+                    <ConfigProvider theme={{
+                        components: {
+                            Menu: {
+                                itemActiveBg: '#0000',
+                                itemSelectedBg: '#0000',
+                                itemHoverBg: '#0000',
+                                itemHoverColor: '#758ebd',
+                                itemColor: '#808080',
+                            },
+                        },
+                    }}>
+                        <Menu
+                            mode="inline"
+                            inlineCollapsed={collapsedSidebar}
+                            triggerSubMenuAction='click'
+                            items={navItems}
+                            selectedKeys={selectedKeys}
+                            openKeys={!collapsedSidebar ? openKeys : []}
+                            onOpenChange={onOpenChange}
+                            onSelect={({ key }) => updateSelectedKeys([key], false)}
+                            style={{
+                                border: 0,
+                            }}
+                        />
+                    </ConfigProvider>
                 </Sider>
                 <Layout style={{
                     backgroundColor: 'white',
