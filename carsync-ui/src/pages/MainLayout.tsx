@@ -61,6 +61,8 @@ const MainLayout: React.FC = () => {
         }
     ]
 
+    const [collapsedSidebar, setCollapsedSideBar] = React.useState<boolean>(true);
+
     return (
         <Flex vertical justify='center' align='center'
             style={{
@@ -94,26 +96,34 @@ const MainLayout: React.FC = () => {
                 scrollbarGutter: 'stable',
                 borderRight: 0,
             }}>
-                <Sider style={{
-                    backgroundColor: 'white',
-                    margin: 0,
-                    height: '100%',
-                    overflow: 'auto',
-                    position: 'sticky',
-                    insetInlineStart: 0,
-                    background: colorBgContainer,
-                    borderTopLeftRadius: borderRadiusLG,
-                    borderBottomLeftRadius: borderRadiusLG,
-                    borderTopRightRadius: 0,
-                    borderBottomRightRadius: 0,
-                    border: 0,
-                    top: 0,
-                    bottom: 0,
-                    scrollbarWidth: 'thin',
-                    scrollbarGutter: 'stable',
-                }}>
+                <Sider
+                    trigger={null}
+                    collapsible
+                    collapsed={collapsedSidebar}
+                    onMouseEnter={() => { setCollapsedSideBar(false) }}
+                    onMouseLeave={() => { setCollapsedSideBar(true) }}
+                    style={{
+                        backgroundColor: 'white',
+                        margin: 0,
+                        height: '100%',
+                        overflow: 'auto',
+                        position: 'sticky',
+                        insetInlineStart: 0,
+                        background: colorBgContainer,
+                        borderTopLeftRadius: borderRadiusLG,
+                        borderBottomLeftRadius: borderRadiusLG,
+                        borderTopRightRadius: 0,
+                        borderBottomRightRadius: 0,
+                        border: 0,
+                        top: 0,
+                        bottom: 0,
+                        scrollbarWidth: 'thin',
+                        scrollbarGutter: 'stable',
+                    }}>
                     <Menu
                         mode="inline"
+                        inlineCollapsed={collapsedSidebar}
+                        triggerSubMenuAction='click'
                         items={navItems}
                         style={{
                             border: 0,
