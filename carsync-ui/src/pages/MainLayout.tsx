@@ -1,55 +1,65 @@
 import {
     AppstoreOutlined,
-    BarChartOutlined,
-    CloudOutlined,
-    ShopOutlined,
-    TeamOutlined,
-    UploadOutlined,
-    UserOutlined,
-    VideoCameraOutlined
+    BarsOutlined,
+    CarOutlined,
+    DashboardOutlined,
+    DotChartOutlined,
+    FileSyncOutlined,
+    HomeOutlined
 } from '@ant-design/icons';
 import { Flex, Layout, Menu, MenuProps, theme, Typography } from 'antd';
 import React from 'react';
 
 const { Title } = Typography;
 
-const { Header, Sider, Content } = Layout;
+const { Header, Sider } = Layout;
 
 const MainLayout: React.FC = () => {
     const {
         token: { colorBgContainer, borderRadiusLG },
     } = theme.useToken();
 
-    const items: MenuProps['items'] = [
-        UserOutlined,
-        VideoCameraOutlined,
-        UploadOutlined,
-        BarChartOutlined,
-        CloudOutlined,
-        AppstoreOutlined,
-        TeamOutlined,
-        ShopOutlined,
-        UserOutlined,
-        VideoCameraOutlined,
-        UploadOutlined,
-        BarChartOutlined,
-        CloudOutlined,
-        AppstoreOutlined,
-        TeamOutlined,
-        ShopOutlined,
-        UserOutlined,
-        VideoCameraOutlined,
-        UploadOutlined,
-        BarChartOutlined,
-        CloudOutlined,
-        AppstoreOutlined,
-        TeamOutlined,
-        ShopOutlined,
-    ].map((icon, index) => ({
-        key: String(index + 1),
-        icon: React.createElement(icon),
-        label: `nav ${index + 1}`,
-    }));
+    const navItems: MenuProps['items'] = [
+        {
+            key: 'home',
+            icon: <HomeOutlined />,
+            label: 'Home',
+        },
+        {
+            key: 'view-data',
+            icon: <AppstoreOutlined />,
+            label: 'View Data',
+            children: [
+                {
+                    key: 'view-data/list-all',
+                    label: 'List all',
+                    icon: <BarsOutlined />,
+                },
+                {
+                    key: 'view-data/view-graph',
+                    label: 'View graph',
+                    icon: <DotChartOutlined />
+                },
+                {
+                    key: 'view-data/show-specs',
+                    label: 'Show specs',
+                    icon: <DashboardOutlined />
+                },
+            ]
+        },
+        {
+            key: 'fetch-data',
+            icon: <FileSyncOutlined />,
+            label: 'Fetch Data',
+            children: [
+                {
+                    key: 'fetch-data/carwale',
+                    label: 'CarWale',
+                    icon: <CarOutlined />
+                }
+            ]
+        }
+    ]
 
     return (
         <Flex vertical justify='center' align='center'
@@ -104,48 +114,31 @@ const MainLayout: React.FC = () => {
                 }}>
                     <Menu
                         mode="inline"
-                        items={items}
+                        items={navItems}
+                        style={{
+                            border: 0,
+                        }}
                     />
                 </Sider>
-                <Layout>
-                    <Content style={{
-                        backgroundColor: 'white',
-                        margin: 0,
-                        height: '100%',
-                        overflow: 'auto',
-                        position: 'sticky',
-                        insetInlineStart: 0,
-                        background: colorBgContainer,
-                        borderTopLeftRadius: 0,
-                        borderBottomLeftRadius: 0,
-                        borderTopRightRadius: borderRadiusLG,
-                        borderBottomRightRadius: borderRadiusLG,
-                        border: 0,
-                        top: 0,
-                        bottom: 0,
-                        scrollbarWidth: 'thin',
-                        scrollbarGutter: 'stable',
-                    }}>
-                        <div
-                            style={{
-                                padding: 0,
-                                textAlign: 'center',
-                                background: colorBgContainer,
-                                borderRadius: borderRadiusLG,
-                            }}
-                        >
-                            <p>long content</p>
-                            {
-                                // indicates very long content
-                                Array.from({ length: 100 }, (_, index) => (
-                                    <React.Fragment key={index}>
-                                        {index % 20 === 0 && index ? 'more' : '...'}
-                                        <br />
-                                    </React.Fragment>
-                                ))
-                            }
-                        </div>
-                    </Content>
+                <Layout style={{
+                    backgroundColor: 'white',
+                    margin: 0,
+                    height: '100%',
+                    overflow: 'auto',
+                    position: 'sticky',
+                    insetInlineStart: 0,
+                    background: colorBgContainer,
+                    borderTopLeftRadius: 0,
+                    borderBottomLeftRadius: 0,
+                    borderTopRightRadius: borderRadiusLG,
+                    borderBottomRightRadius: borderRadiusLG,
+                    border: 0,
+                    top: 0,
+                    bottom: 0,
+                    scrollbarWidth: 'thin',
+                    scrollbarGutter: 'stable',
+                }}>
+                    <Title level={4} style={{ margin: 16 }} >Welcome to CarSync home</Title>
                 </Layout>
             </Layout>
         </Flex>
