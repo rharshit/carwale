@@ -83,7 +83,7 @@ const MainLayout: React.FC = () => {
     useEffect(() => {
         const path = window.location.pathname;
         updateSelectedKeys([path.startsWith('/') ? path.substring(1) : path], true);
-    });
+    }, []);
 
     const onOpenChange: MenuProps['onOpenChange'] = (keys) => {
         updateOpenKeys(keys, false);
