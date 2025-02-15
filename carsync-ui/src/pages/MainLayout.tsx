@@ -8,7 +8,7 @@ import {
     HomeOutlined
 } from '@ant-design/icons';
 import { Flex, Layout, Menu, MenuProps, theme, Typography } from 'antd';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Route, Routes, useNavigate } from 'react-router-dom';
 import CarWalePage from './fetch/CarWalePage';
 import HomePage from './home/HomePage';
@@ -77,10 +77,20 @@ const MainLayout: React.FC = () => {
 
     const [collapsedSidebar, setCollapsedSideBar] = React.useState<boolean>(true);
     const [openKeys, setOpenKeys] = React.useState<string[]>([]);
+    const [selectedKeys, setSelectedKeys] = React.useState<string[]>([]);
     const rootSubmenuKeys = navItems.map(item => item?.key);
 
-    const onOpenChange: MenuProps['onOpenChange'] = keys => {
-        if (collapsedSidebar) {
+    useEffect(() => {
+        const path = window.location.pathname;
+        updateSelectedKeys([path.startsWith('/') ? path.substring(1) : path], true);
+    });
+
+    const onOpenChange: MenuProps['onOpenChange'] = (keys) => {
+        updateOpenKeys(keys, false);
+    };
+
+    const updateOpenKeys = (keys: string[], initalLoad: boolean) => {
+        if (!initalLoad && collapsedSidebar) {
             return;
         }
         if (keys.length === 0) {
@@ -94,6 +104,11 @@ const MainLayout: React.FC = () => {
             setOpenKeys(latestOpenKey ? [latestOpenKey] : []);
         }
     };
+
+    const updateSelectedKeys = (keys: string[], initalLoad: boolean) => {
+        setSelectedKeys(keys);
+        updateOpenKeys(keys, initalLoad);
+    }
 
     return (
         <Flex vertical justify='center' align='center'
@@ -157,9 +172,10 @@ const MainLayout: React.FC = () => {
                         inlineCollapsed={collapsedSidebar}
                         triggerSubMenuAction='click'
                         items={navItems}
+                        selectedKeys={selectedKeys}
                         openKeys={!collapsedSidebar ? openKeys : []}
                         onOpenChange={onOpenChange}
-                        onSelect={({ key }) => onOpenChange([key])}
+                        onSelect={({ key }) => updateSelectedKeys([key], false)}
                         style={{
                             border: 0,
                         }}
