@@ -113,24 +113,28 @@ const MainLayout: React.FC = () => {
     return (
         <Flex vertical justify='center' align='center'
             style={{
-                backgroundColor: colorBgContainer,
                 height: '100vh',
                 width: '100vw',
+                background: "#f5f5f5",
             }}>
-            <Header style={{
-                padding: 0,
-                background: colorBgContainer,
-                position: 'sticky',
-                top: 0,
-                zIndex: 1,
-                width: '100%',
-                display: 'flex',
-                alignItems: 'center',
-            }}>
-                <Flex justify='flex-start' align='center'>
-                    <Title level={3} style={{ margin: 16 }} >CarSync</Title>
-                </Flex>
-            </Header>
+            <Flex style={{ width: '100%' }}>
+                <Header style={{
+                    padding: 0,
+                    margin: '24px 24px 0px 24px',
+                    background: colorBgContainer,
+                    borderRadius: borderRadiusLG,
+                    position: 'sticky',
+                    top: 0,
+                    zIndex: 1,
+                    width: '100%',
+                    display: 'flex',
+                    alignItems: 'center',
+                }}>
+                    <Flex justify='flex-start' align='center'>
+                        <Title level={3} style={{ margin: 16 }} >CarSync</Title>
+                    </Flex>
+                </Header>
+            </Flex>
             <Layout style={{
                 overflow: 'auto',
                 width: '100%',
