@@ -6,6 +6,7 @@ function App() {
   return (
     <ConfigProvider theme={{
       token: {
+        colorPrimary: '#5385c6',
         borderRadius: 16,
         borderRadiusXS: 8,
         borderRadiusSM: 16,

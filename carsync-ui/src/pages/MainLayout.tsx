@@ -10,6 +10,7 @@ import {
 import { ConfigProvider, Flex, Layout, Menu, MenuProps, theme, Typography } from 'antd';
 import React, { useEffect } from 'react';
 import { Route, Routes, useNavigate } from 'react-router-dom';
+import carSyncLogo from '../assets/CarSync.svg';
 import CarWalePage from './fetch/CarWalePage';
 import HomePage from './home/HomePage';
 import ListAllPage from './view-data/ListAllPage';
@@ -131,7 +132,10 @@ const MainLayout: React.FC = () => {
                     alignItems: 'center',
                 }}>
                     <Flex justify='flex-start' align='center'>
-                        <Title level={3} style={{ margin: 16 }} >CarSync</Title>
+                        <Flex gap={16}>
+                            <img src={carSyncLogo} className="logo" alt="CarSync logo" width={32} height={32} style={{ margin: '16px 0 16px 16px' }} />
+                            <Title level={3} style={{ margin: '16px 16px 16px 0' }} >CarSync</Title>
+                        </Flex>
                     </Flex>
                 </Header>
             </Flex>
@@ -177,7 +181,7 @@ const MainLayout: React.FC = () => {
                                 itemActiveBg: '#0000',
                                 itemSelectedBg: '#0000',
                                 itemHoverBg: '#0000',
-                                itemHoverColor: '#758ebd',
+                                itemHoverColor: '#667d99',
                                 itemColor: '#808080',
                             },
                         },
