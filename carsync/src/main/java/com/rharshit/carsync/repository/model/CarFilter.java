@@ -4,6 +4,8 @@ import lombok.Data;
 
 @Data
 public class CarFilter {
+    private Integer limit;
+    private Integer skip;
     private String city;
     private String make;
     private String model;

@@ -37,7 +37,8 @@ public class CarService {
                     carFilter.getMinLength(), carFilter.getMaxLength(),
                     carFilter.getMinWidth(), carFilter.getMaxWidth(),
                     carFilter.getMinHeight(), carFilter.getMaxHeight(),
-                    carFilter.getMinWheelbase(), carFilter.getMaxWheelbase());
+                            carFilter.getMinWheelbase(), carFilter.getMaxWheelbase())
+                    .stream().skip(carFilter.getSkip()).limit(carFilter.getLimit()).toList();
         } catch (Exception e) {
             log.error("Error fetching list of cars", e);
             return Collections.emptyList();
@@ -47,6 +48,12 @@ public class CarService {
     private void verifyFilter(CarFilter carFilter) {
         if (carFilter == null) {
             throw new IllegalArgumentException("Filter cannot be null");
+        }
+        if (carFilter.getLimit() == null) {
+            carFilter.setLimit(Integer.MAX_VALUE);
+        }
+        if (carFilter.getSkip() == null) {
+            carFilter.setSkip(0);
         }
         if (carFilter.getCity() == null) {
             carFilter.setCity("/*");
