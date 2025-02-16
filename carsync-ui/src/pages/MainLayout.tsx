@@ -188,6 +188,7 @@ const MainLayout: React.FC = () => {
                             onOpenChange={onOpenChange}
                             onSelect={({ key }) => updateSelectedKeys([key], false)}
                             style={{
+                                padding: '16px 0px 16px 0px',
                                 border: 0,
                             }}
                         />
