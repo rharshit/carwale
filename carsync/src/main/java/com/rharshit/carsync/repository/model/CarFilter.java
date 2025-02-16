@@ -6,10 +6,10 @@ import lombok.Data;
 public class CarFilter {
     private Integer limit;
     private Integer skip;
-    private String city;
-    private String make;
-    private String model;
-    private String variant;
+    private String[] cities;
+    private String[] makes;
+    private String[] models;
+    private String[] variants;
     private Integer minYear;
     private Integer maxYear;
     private Integer minPrice;

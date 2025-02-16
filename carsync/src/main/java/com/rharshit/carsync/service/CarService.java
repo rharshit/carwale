@@ -12,6 +12,8 @@ import org.springframework.stereotype.Service;
 import java.util.Collections;
 import java.util.List;
 
+import static com.rharshit.carsync.common.Utils.listToRegexMongoQueryParam;
+
 
 @Slf4j
 @Service
@@ -28,7 +30,10 @@ public class CarService {
         try {
             verifyFilter(carFilter);
             return carModelRepository.findByFilter(
-                    carFilter.getCity(), carFilter.getMake(), carFilter.getModel(), carFilter.getVariant(),
+                            listToRegexMongoQueryParam(carFilter.getCities()),
+                            listToRegexMongoQueryParam(carFilter.getMakes()),
+                            listToRegexMongoQueryParam(carFilter.getModels()),
+                            listToRegexMongoQueryParam(carFilter.getVariants()),
                     carFilter.getMinYear(), carFilter.getMaxYear(),
                     carFilter.getMinPrice(), carFilter.getMaxPrice(),
                     carFilter.getMinMileage(), carFilter.getMaxMileage(),
@@ -55,17 +60,17 @@ public class CarService {
         if (carFilter.getSkip() == null) {
             carFilter.setSkip(0);
         }
-        if (carFilter.getCity() == null) {
-            carFilter.setCity("/*");
+        if (carFilter.getCities() == null) {
+            carFilter.setCities(new String[0]);
         }
-        if (carFilter.getMake() == null) {
-            carFilter.setMake("/*");
+        if (carFilter.getMakes() == null) {
+            carFilter.setMakes(new String[0]);
         }
-        if (carFilter.getModel() == null) {
-            carFilter.setModel("/*");
+        if (carFilter.getModels() == null) {
+            carFilter.setModels(new String[0]);
         }
-        if (carFilter.getVariant() == null) {
-            carFilter.setVariant("/*");
+        if (carFilter.getVariants() == null) {
+            carFilter.setVariants(new String[0]);
         }
         if (carFilter.getMinYear() == null) {
             carFilter.setMinYear(0);
