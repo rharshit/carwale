@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 const baseUrl = 'http://localhost:8080/api';
 
 const call = (url: string, method: string, data: any) => {
