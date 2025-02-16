@@ -206,7 +206,7 @@ const MainLayout: React.FC = () => {
                     backgroundColor: 'white',
                     margin: 0,
                     height: '100%',
-                    padding: '0px 24px 0px 24px',
+                    padding: collapsedSidebar ? '0px 24px 0px 0px' : '0px 24px 0px 24px',
                     overflow: 'auto',
                     position: 'sticky',
                     insetInlineStart: 0,
@@ -218,7 +218,7 @@ const MainLayout: React.FC = () => {
                     border: 0,
                     top: 0,
                     bottom: 0,
-                    scrollbarWidth: 'thin',
+                    scrollbarWidth: 'none',
                     scrollbarGutter: 'stable',
                 }}>
                     <Routes>
