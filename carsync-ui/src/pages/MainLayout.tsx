@@ -206,7 +206,7 @@ const MainLayout: React.FC = () => {
                     backgroundColor: 'white',
                     margin: 0,
                     height: '100%',
-                    padding: 24,
+                    padding: '0px 24px 0px 24px',
                     overflow: 'auto',
                     position: 'sticky',
                     insetInlineStart: 0,

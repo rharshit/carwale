@@ -11,7 +11,8 @@ function App() {
         borderRadiusXS: 8,
         borderRadiusSM: 16,
         borderRadiusLG: 32,
-        borderRadiusOuter: 16
+        borderRadiusOuter: 16,
+        fontWeightStrong: 400
       }
     }}>
       <MainLayout />
