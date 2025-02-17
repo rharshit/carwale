@@ -1,6 +1,6 @@
-package com.rharshit.carsync.repository.model.client;
+package com.rharshit.carsync.model.client;
 
-import com.rharshit.carsync.repository.model.ClientCarModel;
+import com.rharshit.carsync.model.ClientCarModel;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.lang.NonNull;

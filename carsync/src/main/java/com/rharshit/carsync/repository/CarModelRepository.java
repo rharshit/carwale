@@ -1,6 +1,6 @@
 package com.rharshit.carsync.repository;
 
-import com.rharshit.carsync.repository.model.CarModel;
+import com.rharshit.carsync.model.CarModel;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.mongodb.repository.MongoRepository;

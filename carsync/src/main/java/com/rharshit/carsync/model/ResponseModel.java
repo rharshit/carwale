@@ -1,4 +1,4 @@
-package com.rharshit.carsync.repository.model;
+package com.rharshit.carsync.model;
 
 import lombok.Data;
 
