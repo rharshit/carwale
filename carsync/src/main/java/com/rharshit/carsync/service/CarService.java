@@ -6,7 +6,6 @@ import com.rharshit.carsync.repository.model.CarModel;
 import com.rharshit.carsync.repository.model.ClientCarModel;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.CachePut;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
@@ -25,7 +24,6 @@ public class CarService {
     @Autowired
     private CarFactory carFactory;
 
-    @CachePut("allCars")
     public List<CarModel> getCars(CarFilter carFilter) {
         try {
             verifyFilter(carFilter);

@@ -58,6 +58,7 @@ public interface CarModelRepository extends MongoRepository<CarModel, String> {
     @CacheEvict(value = "allCars", allEntries = true)
     void deleteAll();
 
+    @Cacheable("allCars")
     @Query("{'city' : {$regex : ?0}, 'make' : {$regex : ?1}, 'model' : {$regex : ?2}, 'variant' : {$regex : ?3}," +
             "'year' : {$gte : ?4, $lte : ?5}," +
             "'price' : {$gte : ?6, $lte : ?7}," +
