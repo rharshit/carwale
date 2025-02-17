@@ -1,6 +1,7 @@
 package com.rharshit.carsync.service;
 
 import com.rharshit.carsync.repository.CarModelRepository;
+import com.rharshit.carsync.repository.model.AllCarsResponse;
 import com.rharshit.carsync.repository.model.CarFilter;
 import com.rharshit.carsync.repository.model.CarModel;
 import com.rharshit.carsync.repository.model.ClientCarModel;
@@ -24,7 +25,22 @@ public class CarService {
     @Autowired
     private CarFactory carFactory;
 
-    public List<CarModel> getCars(CarFilter carFilter) {
+    public AllCarsResponse getCars(CarFilter carFilter) {
+        AllCarsResponse response = new AllCarsResponse();
+        try {
+            List<CarModel> cars = getCarsByFilter(carFilter);
+            response.setCars(cars.stream().skip(carFilter.getSkip()).limit(carFilter.getLimit()).toList());
+            response.setTotal(cars.size());
+            response.setLength(response.getCars().size());
+            response.setLoadMore(carFilter.getSkip() + response.getCars().size() < cars.size());
+            response.setSuccess(true);
+        } catch (Exception e) {
+            response.setError(e.getLocalizedMessage());
+        }
+        return response;
+    }
+
+    public List<CarModel> getCarsByFilter(CarFilter carFilter) {
         try {
             verifyFilter(carFilter);
             return carModelRepository.findByFilter(
@@ -40,8 +56,7 @@ public class CarService {
                     carFilter.getMinLength(), carFilter.getMaxLength(),
                     carFilter.getMinWidth(), carFilter.getMaxWidth(),
                     carFilter.getMinHeight(), carFilter.getMaxHeight(),
-                            carFilter.getMinWheelbase(), carFilter.getMaxWheelbase())
-                    .stream().skip(carFilter.getSkip()).limit(carFilter.getLimit()).toList();
+                    carFilter.getMinWheelbase(), carFilter.getMaxWheelbase());
         } catch (Exception e) {
             log.error("Error fetching list of cars", e);
             return Collections.emptyList();
