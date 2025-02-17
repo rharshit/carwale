@@ -13,7 +13,7 @@ const call = (url: string, method: string, data: any) => {
     if (method != 'GET') {
         options.body = JSON.stringify(data);
     }
-    return fetch(baseUrl + url, options);
+    return fetch(baseUrl + url, options).then(res => res.json());
 }
 
 export const get = (url: string) => {

@@ -1,17 +1,29 @@
 import { Flex, Typography } from 'antd';
 import React from 'react';
-import { FilterComponent } from './FilterComponent';
+import { post } from '../../service/api';
+import { CarFilter, FilterComponent } from './FilterComponent';
 
 const { Title } = Typography;
 
 const ListAllPage: React.FC = () => {
+
+    const onApplyFilter = async (carFilter: CarFilter) => {
+        console.log('carFilter', carFilter);
+        Promise.resolve(post('/car', carFilter).then(res => {
+            console.log('data', res)
+        }))
+        console.log('onApplyFilter')
+    }
+
     return (
         <>
             <Flex vertical>
                 <Title level={3}>
                     All Cars
                 </Title>
-                <FilterComponent />
+                <FilterComponent
+                    onApplyFilter={onApplyFilter}
+                />
                 <p>long content</p>
                 {
                     // indicates very long content
