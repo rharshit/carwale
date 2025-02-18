@@ -9,7 +9,6 @@ import CityFilter from "./CityFilter";
 import HeightFilter from "./HeightFilter";
 import LengthFilter from "./LengthFilter";
 import { SliderFilter } from "./SliderFilter";
-import TorqueFilter from "./TorqueFilter";
 import WheelbaseFilter from "./WheelbaseFilter";
 import WidthFilter from "./WidthFilter";
 
@@ -45,6 +44,10 @@ export function FilterComponent(filterProps: FilterProps) {
     const [isPowerFilterEnabled, setPowerFilterEnabled] = useState<boolean>(false);
     const [minPower, setMinPower] = useState<number>(0);
     const [maxPower, setMaxPower] = useState<number>(0);
+
+    const [isTorqueFilterEnabled, setTorqueFilterEnabled] = useState<boolean>(false);
+    const [minTorque, setMinTorque] = useState<number>(0);
+    const [maxTorque, setMaxTorque] = useState<number>(0);
 
     const filterOptions: SegmentedOptions<valueType> = [
         {
@@ -85,7 +88,7 @@ export function FilterComponent(filterProps: FilterProps) {
         },
         {
             label: (
-                <Text>Torque</Text>
+                <Text disabled={selectedFilter != 'Torque' && !isTorqueFilterEnabled}>Torque</Text>
             ),
             value: 'Torque'
         },
@@ -148,6 +151,10 @@ export function FilterComponent(filterProps: FilterProps) {
         if (isPowerFilterEnabled) {
             filter.minPower = minPower;
             filter.maxPower = maxPower;
+        }
+        if (isTorqueFilterEnabled) {
+            filter.minTorque = minTorque;
+            filter.maxTorque = maxTorque;
         }
         onApplyFilter(filter);
     }
@@ -236,7 +243,16 @@ export function FilterComponent(filterProps: FilterProps) {
                                 />
                             }
                             {
-                                selectedFilter == 'Torque' && <TorqueFilter />
+                                selectedFilter == 'Torque' && <SliderFilter
+                                    isFilterEnabled={isTorqueFilterEnabled}
+                                    setFilterEnabled={setTorqueFilterEnabled}
+                                    lowerLimit={carFilterValues?.minTorque ?? 0}
+                                    minValue={minTorque}
+                                    setMinValue={setMinTorque}
+                                    higherLimit={carFilterValues?.maxTorque ?? 0}
+                                    maxValue={maxTorque}
+                                    setMaxValue={setMaxTorque}
+                                />
                             }
                             {
                                 selectedFilter == 'Length' && <LengthFilter />
