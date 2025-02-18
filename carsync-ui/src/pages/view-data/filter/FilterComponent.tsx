@@ -8,7 +8,6 @@ import CarFilter from "./CarFilter";
 import CityFilter from "./CityFilter";
 import HeightFilter from "./HeightFilter";
 import LengthFilter from "./LengthFilter";
-import { default as PowerFilter } from "./PowerFilter";
 import { SliderFilter } from "./SliderFilter";
 import TorqueFilter from "./TorqueFilter";
 import WheelbaseFilter from "./WheelbaseFilter";
@@ -43,6 +42,10 @@ export function FilterComponent(filterProps: FilterProps) {
     const [minMileage, setMinMileage] = useState<number>(0);
     const [maxMileage, setMaxMileage] = useState<number>(0);
 
+    const [isPowerFilterEnabled, setPowerFilterEnabled] = useState<boolean>(false);
+    const [minPower, setMinPower] = useState<number>(0);
+    const [maxPower, setMaxPower] = useState<number>(0);
+
     const filterOptions: SegmentedOptions<valueType> = [
         {
             label: (
@@ -76,7 +79,7 @@ export function FilterComponent(filterProps: FilterProps) {
         },
         {
             label: (
-                <Text>Power</Text>
+                <Text disabled={selectedFilter != 'Power' && !isPowerFilterEnabled}>Power</Text>
             ),
             value: 'Power'
         },
@@ -141,6 +144,10 @@ export function FilterComponent(filterProps: FilterProps) {
         if (isMileageFilterEnabled) {
             filter.minMileage = minMileage;
             filter.maxMileage = maxMileage;
+        }
+        if (isPowerFilterEnabled) {
+            filter.minPower = minPower;
+            filter.maxPower = maxPower;
         }
         onApplyFilter(filter);
     }
@@ -217,7 +224,16 @@ export function FilterComponent(filterProps: FilterProps) {
                                 />
                             }
                             {
-                                selectedFilter == 'Power' && <PowerFilter />
+                                selectedFilter == 'Power' && <SliderFilter
+                                    isFilterEnabled={isPowerFilterEnabled}
+                                    setFilterEnabled={setPowerFilterEnabled}
+                                    lowerLimit={carFilterValues?.minPower ?? 0}
+                                    minValue={minPower}
+                                    setMinValue={setMinPower}
+                                    higherLimit={carFilterValues?.maxPower ?? 0}
+                                    maxValue={maxPower}
+                                    setMaxValue={setMaxPower}
+                                />
                             }
                             {
                                 selectedFilter == 'Torque' && <TorqueFilter />
