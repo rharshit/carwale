@@ -8,7 +8,6 @@ import CarFilter from "./CarFilter";
 import CityFilter from "./CityFilter";
 import HeightFilter from "./HeightFilter";
 import LengthFilter from "./LengthFilter";
-import MileageFilter from "./MileageFilter";
 import { default as PowerFilter } from "./PowerFilter";
 import { SliderFilter } from "./SliderFilter";
 import TorqueFilter from "./TorqueFilter";
@@ -40,6 +39,10 @@ export function FilterComponent(filterProps: FilterProps) {
     const [minPrice, setMinPrice] = useState<number>(0);
     const [maxPrice, setMaxPrice] = useState<number>(0);
 
+    const [isMileageFilterEnabled, setMileageFilterEnabled] = useState<boolean>(false);
+    const [minMileage, setMinMileage] = useState<number>(0);
+    const [maxMileage, setMaxMileage] = useState<number>(0);
+
     const filterOptions: SegmentedOptions<valueType> = [
         {
             label: (
@@ -67,7 +70,7 @@ export function FilterComponent(filterProps: FilterProps) {
         },
         {
             label: (
-                <Text>Mileage</Text>
+                <Text disabled={selectedFilter != 'Mileage' && !isMileageFilterEnabled}>Mileage</Text>
             ),
             value: 'Mileage'
         },
@@ -135,6 +138,10 @@ export function FilterComponent(filterProps: FilterProps) {
             filter.minPrice = minPrice;
             filter.maxPrice = maxPrice;
         }
+        if (isMileageFilterEnabled) {
+            filter.minMileage = minMileage;
+            filter.maxMileage = maxMileage;
+        }
         onApplyFilter(filter);
     }
 
@@ -198,7 +205,16 @@ export function FilterComponent(filterProps: FilterProps) {
                                 />
                             }
                             {
-                                selectedFilter == 'Mileage' && <MileageFilter />
+                                selectedFilter == 'Mileage' && <SliderFilter
+                                    isFilterEnabled={isMileageFilterEnabled}
+                                    setFilterEnabled={setMileageFilterEnabled}
+                                    lowerLimit={carFilterValues?.minMileage ?? 0}
+                                    minValue={minMileage}
+                                    setMinValue={setMinMileage}
+                                    higherLimit={carFilterValues?.maxMileage ?? 0}
+                                    maxValue={maxMileage}
+                                    setMaxValue={setMaxMileage}
+                                />
                             }
                             {
                                 selectedFilter == 'Power' && <PowerFilter />
