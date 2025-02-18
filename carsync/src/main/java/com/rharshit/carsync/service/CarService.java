@@ -1,10 +1,8 @@
 package com.rharshit.carsync.service;
 
-import com.rharshit.carsync.model.AllCarsResponse;
-import com.rharshit.carsync.model.CarFilter;
-import com.rharshit.carsync.model.CarModel;
-import com.rharshit.carsync.model.ClientCarModel;
+import com.rharshit.carsync.model.*;
 import com.rharshit.carsync.repository.CarModelRepository;
+import com.rharshit.carsync.repository.MakeModelRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -21,6 +19,9 @@ public class CarService {
 
     @Autowired
     private CarModelRepository carModelRepository;
+
+    @Autowired
+    private MakeModelRepository makeModelRepository;
 
     @Autowired
     private CarFactory carFactory;
@@ -167,4 +168,15 @@ public class CarService {
         return clientService.startFixThread();
     }
 
+    public CarFilterResponse getCarFilterValues() {
+        try {
+            CarFilterResponse carFilterResponse = new CarFilterResponse();
+            carFilterResponse.setValues(carModelRepository.getCarFilterValues());
+            carFilterResponse.setMakeModels(makeModelRepository.findAll());
+            return carFilterResponse;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return new CarFilterResponse();
+    }
 }

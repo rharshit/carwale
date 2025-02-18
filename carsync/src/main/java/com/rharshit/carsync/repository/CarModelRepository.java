@@ -11,7 +11,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface CarModelRepository extends MongoRepository<CarModel, String> {
+public interface CarModelRepository extends MongoRepository<CarModel, String>, AppRepository {
 
     @NonNull
     @Override
