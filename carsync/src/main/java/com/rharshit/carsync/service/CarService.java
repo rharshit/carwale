@@ -34,9 +34,9 @@ public class CarService {
             response.setTotal(cars.size());
             response.setLength(response.getCars().size());
             response.setLoadMore(carFilter.getSkip() + response.getCars().size() < cars.size());
-            response.setSuccess(true);
         } catch (Exception e) {
             response.setError(e.getLocalizedMessage());
+            response.setSuccess(false);
         }
         return response;
     }
@@ -175,8 +175,10 @@ public class CarService {
             carFilterResponse.setMakeModels(makeModelRepository.findAll());
             return carFilterResponse;
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Error getting car filters", e);
+            CarFilterResponse carFilterResponse = new CarFilterResponse();
+            carFilterResponse.setSuccess(false);
+            return carFilterResponse;
         }
-        return new CarFilterResponse();
     }
 }
