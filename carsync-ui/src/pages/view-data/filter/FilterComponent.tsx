@@ -6,7 +6,6 @@ import { useEffect, useState } from "react";
 import { get } from "../../../service/api";
 import CarFilter from "./CarFilter";
 import CityFilter from "./CityFilter";
-import HeightFilter from "./HeightFilter";
 import { SliderFilter } from "./SliderFilter";
 import WheelbaseFilter from "./WheelbaseFilter";
 
@@ -54,6 +53,10 @@ export function FilterComponent(filterProps: FilterProps) {
     const [isWidthFilterEnabled, setWidthFilterEnabled] = useState<boolean>(false);
     const [minWidth, setMinWidth] = useState<number>(0);
     const [maxWidth, setMaxWidth] = useState<number>(0);
+
+    const [isHeightFilterEnabled, setHeightFilterEnabled] = useState<boolean>(false);
+    const [minHeight, setMinHeight] = useState<number>(0);
+    const [maxHeight, setMaxHeight] = useState<number>(0);
 
     const filterOptions: SegmentedOptions<valueType> = [
         {
@@ -112,7 +115,7 @@ export function FilterComponent(filterProps: FilterProps) {
         },
         {
             label: (
-                <Text>Height</Text>
+                <Text disabled={selectedFilter != 'Height' && !isHeightFilterEnabled}>Height</Text>
             ),
             value: 'Height'
         },
@@ -169,6 +172,10 @@ export function FilterComponent(filterProps: FilterProps) {
         if (isWidthFilterEnabled) {
             filter.minWidth = minWidth;
             filter.maxWidth = maxWidth;
+        }
+        if (isHeightFilterEnabled) {
+            filter.minHeight = minHeight;
+            filter.maxHeight = maxHeight;
         }
         onApplyFilter(filter);
     }
@@ -293,7 +300,16 @@ export function FilterComponent(filterProps: FilterProps) {
                                 />
                             }
                             {
-                                selectedFilter == 'Height' && <HeightFilter />
+                                selectedFilter == 'Height' && <SliderFilter
+                                    isFilterEnabled={isHeightFilterEnabled}
+                                    setFilterEnabled={setHeightFilterEnabled}
+                                    lowerLimit={carFilterValues?.minHeight ?? 0}
+                                    minValue={minHeight}
+                                    setMinValue={setMinHeight}
+                                    higherLimit={carFilterValues?.maxHeight ?? 0}
+                                    maxValue={maxHeight}
+                                    setMaxValue={setMaxHeight}
+                                />
                             }
                             {
                                 selectedFilter == 'Wheelbase' && <WheelbaseFilter />
