@@ -23,7 +23,7 @@ export function FilterComponent(filterProps: FilterProps) {
     const [isCityFilterEnabled, setCityFilterEnabled] = useState<boolean>(false);
     const [selectedCities, setSelectedCities] = useState<string[]>([]);
 
-    //
+    const [isCarFilterEnabled, setCarFilterEnabled] = useState<boolean>(false);
 
     const [isYearFilterEnabled, setYearFilterEnabled] = useState<boolean>(false);
     const [minYear, setMinYear] = useState<number>(0);
@@ -70,7 +70,7 @@ export function FilterComponent(filterProps: FilterProps) {
         },
         {
             label: (
-                <Text>Car</Text>
+                <Text disabled={selectedFilter != 'Car' && !isCarFilterEnabled}>Car</Text>
             ),
             value: 'Car'
         },
