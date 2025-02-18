@@ -4,6 +4,6 @@ import lombok.Data;
 
 @Data
 public abstract class ResponseModel {
-    private boolean success = false;
+    private boolean success = true;
     private String error = null;
 }

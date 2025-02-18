@@ -1,10 +1,8 @@
 package com.rharshit.carsync.service;
 
-import com.rharshit.carsync.model.AllCarsResponse;
-import com.rharshit.carsync.model.CarFilter;
-import com.rharshit.carsync.model.CarModel;
-import com.rharshit.carsync.model.ClientCarModel;
+import com.rharshit.carsync.model.*;
 import com.rharshit.carsync.repository.CarModelRepository;
+import com.rharshit.carsync.repository.MakeModelRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -23,6 +21,9 @@ public class CarService {
     private CarModelRepository carModelRepository;
 
     @Autowired
+    private MakeModelRepository makeModelRepository;
+
+    @Autowired
     private CarFactory carFactory;
 
     public AllCarsResponse getCars(CarFilter carFilter) {
@@ -33,9 +34,9 @@ public class CarService {
             response.setTotal(cars.size());
             response.setLength(response.getCars().size());
             response.setLoadMore(carFilter.getSkip() + response.getCars().size() < cars.size());
-            response.setSuccess(true);
         } catch (Exception e) {
             response.setError(e.getLocalizedMessage());
+            response.setSuccess(false);
         }
         return response;
     }
@@ -167,4 +168,18 @@ public class CarService {
         return clientService.startFixThread();
     }
 
+    public CarFilterResponse getCarFilterValues() {
+        try {
+            CarFilterResponse carFilterResponse = new CarFilterResponse();
+            carFilterResponse.setValues(carModelRepository.getCarFilterValues());
+            carFilterResponse.setMakeModels(makeModelRepository.findAllWithoutCars());
+            carFilterResponse.setCities(carModelRepository.getAllCities());
+            return carFilterResponse;
+        } catch (Exception e) {
+            log.error("Error getting car filters", e);
+            CarFilterResponse carFilterResponse = new CarFilterResponse();
+            carFilterResponse.setSuccess(false);
+            return carFilterResponse;
+        }
+    }
 }

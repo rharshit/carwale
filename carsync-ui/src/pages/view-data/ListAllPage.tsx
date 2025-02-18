@@ -1,18 +1,30 @@
 import { Flex, Typography } from 'antd';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { post } from '../../service/api';
-import { CarFilter, FilterComponent } from './FilterComponent';
+import { CarFilter, FilterComponent } from './filter/FilterComponent';
 
 const { Title } = Typography;
 
 const ListAllPage: React.FC = () => {
 
-    const onApplyFilter = async (carFilter: CarFilter) => {
-        console.log('carFilter', carFilter);
+    const [carFilter, setCarFilter] = useState<CarFilter>()
+
+    useEffect(() => {
+        fetchCars(carFilter)
+    }, [carFilter])
+
+    async function fetchCars(carFilter: CarFilter | undefined) {
+        if (!carFilter) {
+            return;
+        }
+        console.log('Fetching cars', carFilter)
         Promise.resolve(post('/car', carFilter).then(res => {
             console.log('data', res)
         }))
-        console.log('onApplyFilter')
+    }
+
+    const onApplyFilter = (carFilter: CarFilter) => {
+        setCarFilter(carFilter)
     }
 
     return (
