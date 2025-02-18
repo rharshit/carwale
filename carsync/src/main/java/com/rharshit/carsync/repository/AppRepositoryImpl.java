@@ -2,6 +2,7 @@ package com.rharshit.carsync.repository;
 
 import com.rharshit.carsync.model.CarFilter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.Aggregation;
 import org.springframework.data.mongodb.core.aggregation.GroupOperation;
@@ -14,6 +15,7 @@ public class AppRepositoryImpl implements AppRepository {
     MongoTemplate mongoTemplate;
 
     @Override
+    @Cacheable("allCars")
     public CarFilter getCarFilterValues() {
         GroupOperation year = Aggregation.group()
                 .min("$year").as("minYear")
