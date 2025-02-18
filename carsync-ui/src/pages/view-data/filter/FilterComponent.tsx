@@ -9,7 +9,7 @@ import CityFilter from "./CityFilter";
 import HeightFilter from "./HeightFilter";
 import LengthFilter from "./LengthFilter";
 import MileageFilter from "./MileageFilter";
-import { default as PowerFilter, default as PriceFilter } from "./PowerFilter";
+import { default as PowerFilter } from "./PowerFilter";
 import { SliderFilter } from "./SliderFilter";
 import TorqueFilter from "./TorqueFilter";
 import WheelbaseFilter from "./WheelbaseFilter";
@@ -36,6 +36,10 @@ export function FilterComponent(filterProps: FilterProps) {
     const [minYear, setMinYear] = useState<number>(0);
     const [maxYear, setMaxYear] = useState<number>(0);
 
+    const [isPriceFilterEnabled, setPriceFilterEnabled] = useState<boolean>(false);
+    const [minPrice, setMinPrice] = useState<number>(0);
+    const [maxPrice, setMaxPrice] = useState<number>(0);
+
     const filterOptions: SegmentedOptions<valueType> = [
         {
             label: (
@@ -57,7 +61,7 @@ export function FilterComponent(filterProps: FilterProps) {
         },
         {
             label: (
-                <Text>Price</Text>
+                <Text disabled={selectedFilter != 'Price' && !isPriceFilterEnabled}>Price</Text>
             ),
             value: 'Price'
         },
@@ -127,6 +131,10 @@ export function FilterComponent(filterProps: FilterProps) {
             filter.minYear = minYear;
             filter.maxYear = maxYear;
         }
+        if (isPriceFilterEnabled) {
+            filter.minPrice = minPrice;
+            filter.maxPrice = maxPrice;
+        }
         onApplyFilter(filter);
     }
 
@@ -167,7 +175,6 @@ export function FilterComponent(filterProps: FilterProps) {
                             }
                             {
                                 selectedFilter == 'Year' && <SliderFilter
-                                    name="Year"
                                     isFilterEnabled={isYearFilterEnabled}
                                     setFilterEnabled={setYearFilterEnabled}
                                     lowerLimit={carFilterValues?.minYear ?? 0}
@@ -179,7 +186,16 @@ export function FilterComponent(filterProps: FilterProps) {
                                 />
                             }
                             {
-                                selectedFilter == 'Price' && <PriceFilter />
+                                selectedFilter == 'Price' && <SliderFilter
+                                    isFilterEnabled={isPriceFilterEnabled}
+                                    setFilterEnabled={setPriceFilterEnabled}
+                                    lowerLimit={carFilterValues?.minPrice ?? 0}
+                                    minValue={minPrice}
+                                    setMinValue={setMinPrice}
+                                    higherLimit={carFilterValues?.maxPrice ?? 0}
+                                    maxValue={maxPrice}
+                                    setMaxValue={setMaxPrice}
+                                />
                             }
                             {
                                 selectedFilter == 'Mileage' && <MileageFilter />
