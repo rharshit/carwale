@@ -8,7 +8,7 @@ import CarFilter from "./CarFilter";
 import CityFilter from "./CityFilter";
 import { SliderFilter } from "./SliderFilter";
 
-const { Title, Paragraph, Text, Link } = Typography;
+const { Text } = Typography;
 
 type FilterProps = {
     onApplyFilter: (carFilter: CarFilter) => void
@@ -332,7 +332,7 @@ export function FilterComponent(filterProps: FilterProps) {
                             }
                         </Flex>
                     </Flex>
-                    <Button onClick={e => createFilter()}>Apply</Button>
+                    <Button onClick={() => createFilter()}>Apply</Button>
                 </Flex>
             </Flex>
         </>
