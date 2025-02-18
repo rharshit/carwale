@@ -2,7 +2,8 @@
 import { Button, Flex, Segmented, Typography } from "antd";
 import { SegmentedOptions } from "antd/es/segmented";
 import { valueType } from "antd/es/statistic/utils";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { get } from "../../../service/api";
 import CarFilter from "./CarFilter";
 import CityFilter from "./CityFilter";
 import HeightFilter from "./HeightFilter";
@@ -20,77 +21,93 @@ type FilterProps = {
     onApplyFilter: (carFilter: CarFilter) => void
 }
 
+const filterOptions: SegmentedOptions<valueType> = [
+    {
+        label: (
+            <Text>City</Text>
+        ),
+        value: 'City'
+    },
+    {
+        label: (
+            <Text>Car</Text>
+        ),
+        value: 'Car'
+    },
+    {
+        label: (
+            <Text>Year</Text>
+        ),
+        value: 'Year'
+    },
+    {
+        label: (
+            <Text>Price</Text>
+        ),
+        value: 'Price'
+    },
+    {
+        label: (
+            <Text>Mileage</Text>
+        ),
+        value: 'Mileage'
+    },
+    {
+        label: (
+            <Text>Power</Text>
+        ),
+        value: 'Power'
+    },
+    {
+        label: (
+            <Text>Torque</Text>
+        ),
+        value: 'Torque'
+    },
+    {
+        label: (
+            <Text>Length</Text>
+        ),
+        value: 'Length'
+    },
+    {
+        label: (
+            <Text>Width</Text>
+        ),
+        value: 'Width'
+    },
+    {
+        label: (
+            <Text>Height</Text>
+        ),
+        value: 'Height'
+    },
+    {
+        label: (
+            <Text>Wheelbase</Text>
+        ),
+        value: 'Wheelbase'
+    },
+]
+
 export function FilterComponent(filterProps: FilterProps) {
     const { onApplyFilter } = filterProps
     const [selectedFilter, setSelectedFilter] = useState<string | number>();
-    const filterOptions: SegmentedOptions<valueType> = [
-        {
-            label: (
-                <Text>City</Text>
-            ),
-            value: 'City'
-        },
-        {
-            label: (
-                <Text>Car</Text>
-            ),
-            value: 'Car'
-        },
-        {
-            label: (
-                <Text>Year</Text>
-            ),
-            value: 'Year'
-        },
-        {
-            label: (
-                <Text>Price</Text>
-            ),
-            value: 'Price'
-        },
-        {
-            label: (
-                <Text>Mileage</Text>
-            ),
-            value: 'Mileage'
-        },
-        {
-            label: (
-                <Text>Power</Text>
-            ),
-            value: 'Power'
-        },
-        {
-            label: (
-                <Text>Torque</Text>
-            ),
-            value: 'Torque'
-        },
-        {
-            label: (
-                <Text>Length</Text>
-            ),
-            value: 'Length'
-        },
-        {
-            label: (
-                <Text>Width</Text>
-            ),
-            value: 'Width'
-        },
-        {
-            label: (
-                <Text>Height</Text>
-            ),
-            value: 'Height'
-        },
-        {
-            label: (
-                <Text>Wheelbase</Text>
-            ),
-            value: 'Wheelbase'
-        },
-    ]
+    const [carFilterValues, setCarFilterValues] = useState<CarFilterResponse>();
+
+    useEffect(() => {
+        loadFilters();
+    }, []);
+
+    function loadFilters() {
+        Promise.resolve(get('/car/filters').then(res => {
+            populateFilters(res as CarFilterResponse)
+        }))
+    }
+
+    function populateFilters(carFilterValues: CarFilterResponse) {
+        setCarFilterValues(carFilterValues)
+    }
 
     //TODO: Populate the filter
     function createFilter(): void {
@@ -155,6 +172,37 @@ export function FilterComponent(filterProps: FilterProps) {
             </Flex>
         </>
     );
+}
+
+type MakeModels = {
+    make: string,
+    models: {
+        name: string,
+        variants: string[]
+    }[]
+}
+
+type CarFilterResponse = {
+    cities: string[],
+    makeModels: MakeModels[]
+    minYear: number,
+    maxYear: number,
+    minPrice: number,
+    maxPrice: number,
+    minMileage: number,
+    maxMileage: number,
+    minPower: number,
+    maxPower: number,
+    minTorque: number,
+    maxTorque: number,
+    minLength: number,
+    maxLength: number,
+    minWidth: number,
+    maxWidth: number,
+    minHeight: number,
+    maxHeight: number,
+    minWheelbase: number,
+    maxWheelbase: number,
 }
 
 export type CarFilter = {
