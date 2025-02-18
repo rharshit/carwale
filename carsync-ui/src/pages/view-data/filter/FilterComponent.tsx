@@ -10,10 +10,10 @@ import HeightFilter from "./HeightFilter";
 import LengthFilter from "./LengthFilter";
 import MileageFilter from "./MileageFilter";
 import { default as PowerFilter, default as PriceFilter } from "./PowerFilter";
+import { SliderFilter } from "./SliderFilter";
 import TorqueFilter from "./TorqueFilter";
 import WheelbaseFilter from "./WheelbaseFilter";
 import WidthFilter from "./WidthFilter";
-import YearFilter from "./YearFilter";
 
 const { Title, Paragraph, Text, Link } = Typography;
 
@@ -30,6 +30,12 @@ export function FilterComponent(filterProps: FilterProps) {
     const [isCityFilterEnabled, setCityFilterEnabled] = useState<boolean>(false);
     const [selectedCities, setSelectedCities] = useState<string[]>([]);
 
+    //
+
+    const [isYearFilterEnabled, setYearFilterEnabled] = useState<boolean>(false);
+    const [minYear, setMinYear] = useState<number>(0);
+    const [maxYear, setMaxYear] = useState<number>(0);
+
     const filterOptions: SegmentedOptions<valueType> = [
         {
             label: (
@@ -45,7 +51,7 @@ export function FilterComponent(filterProps: FilterProps) {
         },
         {
             label: (
-                <Text>Year</Text>
+                <Text disabled={selectedFilter != 'Year' && !isYearFilterEnabled}>Year</Text>
             ),
             value: 'Year'
         },
@@ -115,9 +121,13 @@ export function FilterComponent(filterProps: FilterProps) {
 
     //TODO: Populate the filter
     function createFilter(): void {
-        const filter: CarFilter = {}
-        filter.cities = selectedCities
-        onApplyFilter(filter)
+        const filter: CarFilter = {};
+        filter.cities = selectedCities;
+        if (isYearFilterEnabled) {
+            filter.minYear = minYear;
+            filter.maxYear = maxYear;
+        }
+        onApplyFilter(filter);
     }
 
     return (
@@ -142,7 +152,7 @@ export function FilterComponent(filterProps: FilterProps) {
                                 scrollbarWidth: 'none',
                             }}
                         />
-                        <Flex>
+                        <Flex style={{ padding: 8 }}>
                             {
                                 selectedFilter == 'City' && <CityFilter
                                     allCities={carFilterValues?.cities ?? []}
@@ -156,7 +166,17 @@ export function FilterComponent(filterProps: FilterProps) {
                                 selectedFilter == 'Car' && <CarFilter />
                             }
                             {
-                                selectedFilter == 'Year' && <YearFilter />
+                                selectedFilter == 'Year' && <SliderFilter
+                                    name="Year"
+                                    isFilterEnabled={isYearFilterEnabled}
+                                    setFilterEnabled={setYearFilterEnabled}
+                                    lowerLimit={carFilterValues?.minYear ?? 0}
+                                    minValue={minYear}
+                                    setMinValue={setMinYear}
+                                    higherLimit={carFilterValues?.maxYear ?? 0}
+                                    maxValue={maxYear}
+                                    setMaxValue={setMaxYear}
+                                />
                             }
                             {
                                 selectedFilter == 'Price' && <PriceFilter />
