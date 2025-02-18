@@ -6,6 +6,7 @@ import java.util.List;
 
 @Data
 public class CarFilterResponse extends ResponseModel {
+    List<String> cities;
     List<MakeModel> makeModels;
     private Integer minYear;
     private Integer maxYear;

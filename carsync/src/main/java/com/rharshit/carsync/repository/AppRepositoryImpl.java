@@ -7,6 +7,7 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.Aggregation;
 import org.springframework.data.mongodb.core.aggregation.GroupOperation;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.rharshit.carsync.common.Constants.CACHE_KEY_ALL_CARS;
@@ -41,5 +42,13 @@ public class AppRepositoryImpl implements AppRepository {
         Aggregation aggregation = Aggregation.newAggregation(year);
         List<CarFilter> response = mongoTemplate.aggregate(aggregation, "carModels", CarFilter.class).getMappedResults();
         return response.getFirst();
+    }
+
+    @Override
+    public List<String> getAllCities() {
+        return mongoTemplate
+                .getCollection("carModels")
+                .distinct("city", String.class)
+                .into(new ArrayList<>());
     }
 }

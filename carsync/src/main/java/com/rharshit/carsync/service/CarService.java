@@ -173,6 +173,7 @@ public class CarService {
             CarFilterResponse carFilterResponse = new CarFilterResponse();
             carFilterResponse.setValues(carModelRepository.getCarFilterValues());
             carFilterResponse.setMakeModels(makeModelRepository.findAllWithoutCars());
+            carFilterResponse.setCities(carModelRepository.getAllCities());
             return carFilterResponse;
         } catch (Exception e) {
             log.error("Error getting car filters", e);
