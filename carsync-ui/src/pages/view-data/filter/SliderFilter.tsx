@@ -1,36 +1,37 @@
 import { CheckOutlined, CloseOutlined } from '@ant-design/icons';
-import { Flex, Input, Slider, Switch } from "antd";
+import { Flex, Input, Slider, Switch, Typography } from "antd";
 import { useEffect, useState } from 'react';
 
 interface NumericInputProps {
-    style: React.CSSProperties;
+    disabled: boolean
     value: string;
     onChange: (value: string) => void;
+    preText?: string,
+    postText?: string,
 }
 
 const NumericInput = (props: NumericInputProps) => {
-    const { value, onChange } = props;
+    const { disabled, value, onChange, preText, postText } = props;
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { value: inputValue } = e.target;
-        const reg = /^-?\d*(\.\d*)?$/;
-        if (reg.test(inputValue) || inputValue === '' || inputValue === '-') {
+        const reg = /^-?\d*?$/;
+        if (reg.test(inputValue) || inputValue === '') {
             onChange(inputValue);
         }
     };
 
-    // '.' at the end or only '-' in the input box.
     const handleBlur = () => {
-        let valueTemp = value;
-        if (value.charAt(value.length - 1) === '.' || value === '-') {
-            valueTemp = value.slice(0, -1);
-        }
-        onChange(valueTemp.replace(/0*(\d+)/, '$1'));
+        onChange(value.replace(/0*(\d+)/, '$1'));
     };
 
     return (
         <Input
             {...props}
+            style={{ width: 190 }}
+            disabled={disabled}
+            addonBefore={preText}
+            suffix={postText}
             onChange={handleChange}
             onBlur={handleBlur}
             maxLength={16}
@@ -39,6 +40,8 @@ const NumericInput = (props: NumericInputProps) => {
 };
 
 type SliderFilterProps = {
+    name: string,
+    unit?: string,
     isFilterEnabled: boolean,
     setFilterEnabled: React.Dispatch<React.SetStateAction<boolean>>,
     lowerLimit: number,
@@ -51,6 +54,8 @@ type SliderFilterProps = {
 
 export function SliderFilter(sliderFilterProps: SliderFilterProps) {
     const {
+        name,
+        unit,
         isFilterEnabled,
         setFilterEnabled,
         lowerLimit,
@@ -60,6 +65,8 @@ export function SliderFilter(sliderFilterProps: SliderFilterProps) {
         maxValue,
         setMaxValue
     } = sliderFilterProps;
+
+    const { Text } = Typography;
 
     const [isSliderUpdating, setIsSliderUpdating] = useState<boolean>(false)
     const [minValueString, setMinValueString] = useState<string>(minValue.toString())
@@ -107,20 +114,35 @@ export function SliderFilter(sliderFilterProps: SliderFilterProps) {
     return (
         <>
             <Flex
-                gap='small'
+                gap='large'
                 justify='space-around'
-                align='flex-end'
-                style={{ width: 600 }}>
-                <Switch
-                    checkedChildren={<CheckOutlined />}
-                    unCheckedChildren={<CloseOutlined />}
-                    checked={isFilterEnabled}
-                    onChange={setFilterEnabled}
-                />
+                align='center'
+                style={{ width: 'auto', margin: '0px 0px 16px 0px' }}>
+                <Flex style={{ rotate: '-90deg' }}>
+                    <Switch
+                        checkedChildren={<CheckOutlined style={{ rotate: '90deg' }} />}
+                        unCheckedChildren={<CloseOutlined style={{ rotate: '90deg' }} />}
+                        checked={isFilterEnabled}
+                        onChange={setFilterEnabled}
+                    />
+                </Flex>
                 <Flex vertical>
-                    <Flex justify='space-between' style={{ width: '100%' }}>
-                        <NumericInput style={{ width: 120 }} value={minValueString} onChange={setMinValueString} />
-                        <NumericInput style={{ width: 120 }} value={maxValueString} onChange={setMaxValueString} />
+                    <Flex justify='space-between' align='center' style={{ width: '100%' }}>
+                        <NumericInput
+                            disabled={!isFilterEnabled}
+                            value={minValueString}
+                            onChange={setMinValueString}
+                            preText='Min'
+                            postText={unit}
+                        />
+                        <Text disabled={!isFilterEnabled} type="secondary">{"<- " + name + " ->"}</Text>
+                        <NumericInput
+                            disabled={!isFilterEnabled}
+                            value={maxValueString}
+                            onChange={setMaxValueString}
+                            preText='Max'
+                            postText={unit}
+                        />
                     </Flex>
                     <Slider
                         range

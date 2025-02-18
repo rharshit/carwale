@@ -224,6 +224,7 @@ export function FilterComponent(filterProps: FilterProps) {
                             }
                             {
                                 selectedFilter == 'Year' && <SliderFilter
+                                    name={selectedFilter}
                                     isFilterEnabled={isYearFilterEnabled}
                                     setFilterEnabled={setYearFilterEnabled}
                                     lowerLimit={carFilterValues?.minYear ?? 0}
@@ -236,6 +237,8 @@ export function FilterComponent(filterProps: FilterProps) {
                             }
                             {
                                 selectedFilter == 'Price' && <SliderFilter
+                                    name={selectedFilter}
+                                    unit="₹"
                                     isFilterEnabled={isPriceFilterEnabled}
                                     setFilterEnabled={setPriceFilterEnabled}
                                     lowerLimit={carFilterValues?.minPrice ?? 0}
@@ -248,6 +251,8 @@ export function FilterComponent(filterProps: FilterProps) {
                             }
                             {
                                 selectedFilter == 'Mileage' && <SliderFilter
+                                    name={selectedFilter}
+                                    unit="km"
                                     isFilterEnabled={isMileageFilterEnabled}
                                     setFilterEnabled={setMileageFilterEnabled}
                                     lowerLimit={carFilterValues?.minMileage ?? 0}
@@ -260,6 +265,8 @@ export function FilterComponent(filterProps: FilterProps) {
                             }
                             {
                                 selectedFilter == 'Power' && <SliderFilter
+                                    name={selectedFilter}
+                                    unit="bhp"
                                     isFilterEnabled={isPowerFilterEnabled}
                                     setFilterEnabled={setPowerFilterEnabled}
                                     lowerLimit={carFilterValues?.minPower ?? 0}
@@ -272,6 +279,8 @@ export function FilterComponent(filterProps: FilterProps) {
                             }
                             {
                                 selectedFilter == 'Torque' && <SliderFilter
+                                    name={selectedFilter}
+                                    unit="nm"
                                     isFilterEnabled={isTorqueFilterEnabled}
                                     setFilterEnabled={setTorqueFilterEnabled}
                                     lowerLimit={carFilterValues?.minTorque ?? 0}
@@ -284,6 +293,8 @@ export function FilterComponent(filterProps: FilterProps) {
                             }
                             {
                                 selectedFilter == 'Length' && <SliderFilter
+                                    name={selectedFilter}
+                                    unit="mm"
                                     isFilterEnabled={isLengthFilterEnabled}
                                     setFilterEnabled={setLengthFilterEnabled}
                                     lowerLimit={carFilterValues?.minLength ?? 0}
@@ -296,6 +307,8 @@ export function FilterComponent(filterProps: FilterProps) {
                             }
                             {
                                 selectedFilter == 'Width' && <SliderFilter
+                                    name={selectedFilter}
+                                    unit="mm"
                                     isFilterEnabled={isWidthFilterEnabled}
                                     setFilterEnabled={setWidthFilterEnabled}
                                     lowerLimit={carFilterValues?.minWidth ?? 0}
@@ -308,6 +321,8 @@ export function FilterComponent(filterProps: FilterProps) {
                             }
                             {
                                 selectedFilter == 'Height' && <SliderFilter
+                                    name={selectedFilter}
+                                    unit="mm"
                                     isFilterEnabled={isHeightFilterEnabled}
                                     setFilterEnabled={setHeightFilterEnabled}
                                     lowerLimit={carFilterValues?.minHeight ?? 0}
@@ -320,6 +335,8 @@ export function FilterComponent(filterProps: FilterProps) {
                             }
                             {
                                 selectedFilter == 'Wheelbase' && <SliderFilter
+                                    name={selectedFilter}
+                                    unit="mm"
                                     isFilterEnabled={isWheelbaseFilterEnabled}
                                     setFilterEnabled={setWheelbaseFilterEnabled}
                                     lowerLimit={carFilterValues?.minWheelbase ?? 0}
