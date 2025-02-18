@@ -1,7 +1,7 @@
 package com.rharshit.carsync.service;
 
+import com.rharshit.carsync.model.ConnectionItem;
 import com.rharshit.carsync.repository.ConnectionRepository;
-import com.rharshit.carsync.repository.model.ConnectionItem;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

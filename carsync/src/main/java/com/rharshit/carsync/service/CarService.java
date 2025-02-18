@@ -1,16 +1,18 @@
 package com.rharshit.carsync.service;
 
+import com.rharshit.carsync.model.AllCarsResponse;
+import com.rharshit.carsync.model.CarFilter;
+import com.rharshit.carsync.model.CarModel;
+import com.rharshit.carsync.model.ClientCarModel;
 import com.rharshit.carsync.repository.CarModelRepository;
-import com.rharshit.carsync.repository.model.CarFilter;
-import com.rharshit.carsync.repository.model.CarModel;
-import com.rharshit.carsync.repository.model.ClientCarModel;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.CachePut;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 import java.util.List;
+
+import static com.rharshit.carsync.common.Utils.listToRegexMongoQueryParam;
 
 
 @Slf4j
@@ -23,12 +25,29 @@ public class CarService {
     @Autowired
     private CarFactory carFactory;
 
-    @CachePut("allCars")
-    public List<CarModel> getCars(CarFilter carFilter) {
+    public AllCarsResponse getCars(CarFilter carFilter) {
+        AllCarsResponse response = new AllCarsResponse();
+        try {
+            List<CarModel> cars = getCarsByFilter(carFilter);
+            response.setCars(cars.stream().skip(carFilter.getSkip()).limit(carFilter.getLimit()).toList());
+            response.setTotal(cars.size());
+            response.setLength(response.getCars().size());
+            response.setLoadMore(carFilter.getSkip() + response.getCars().size() < cars.size());
+            response.setSuccess(true);
+        } catch (Exception e) {
+            response.setError(e.getLocalizedMessage());
+        }
+        return response;
+    }
+
+    public List<CarModel> getCarsByFilter(CarFilter carFilter) {
         try {
             verifyFilter(carFilter);
             return carModelRepository.findByFilter(
-                    carFilter.getCity(), carFilter.getMake(), carFilter.getModel(), carFilter.getVariant(),
+                            listToRegexMongoQueryParam(carFilter.getCities()),
+                            listToRegexMongoQueryParam(carFilter.getMakes()),
+                            listToRegexMongoQueryParam(carFilter.getModels()),
+                            listToRegexMongoQueryParam(carFilter.getVariants()),
                     carFilter.getMinYear(), carFilter.getMaxYear(),
                     carFilter.getMinPrice(), carFilter.getMaxPrice(),
                     carFilter.getMinMileage(), carFilter.getMaxMileage(),
@@ -48,17 +67,23 @@ public class CarService {
         if (carFilter == null) {
             throw new IllegalArgumentException("Filter cannot be null");
         }
-        if (carFilter.getCity() == null) {
-            carFilter.setCity("/*");
+        if (carFilter.getLimit() == null) {
+            carFilter.setLimit(Integer.MAX_VALUE);
         }
-        if (carFilter.getMake() == null) {
-            carFilter.setMake("/*");
+        if (carFilter.getSkip() == null) {
+            carFilter.setSkip(0);
         }
-        if (carFilter.getModel() == null) {
-            carFilter.setModel("/*");
+        if (carFilter.getCities() == null) {
+            carFilter.setCities(new String[0]);
         }
-        if (carFilter.getVariant() == null) {
-            carFilter.setVariant("/*");
+        if (carFilter.getMakes() == null) {
+            carFilter.setMakes(new String[0]);
+        }
+        if (carFilter.getModels() == null) {
+            carFilter.setModels(new String[0]);
+        }
+        if (carFilter.getVariants() == null) {
+            carFilter.setVariants(new String[0]);
         }
         if (carFilter.getMinYear() == null) {
             carFilter.setMinYear(0);

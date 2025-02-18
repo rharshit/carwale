@@ -10,6 +10,7 @@ import {
 import { ConfigProvider, Flex, Layout, Menu, MenuProps, theme, Typography } from 'antd';
 import React, { useEffect } from 'react';
 import { Route, Routes, useNavigate } from 'react-router-dom';
+import carSyncLogo from '../assets/CarSync.svg';
 import CarWalePage from './fetch/CarWalePage';
 import HomePage from './home/HomePage';
 import ListAllPage from './view-data/ListAllPage';
@@ -113,24 +114,31 @@ const MainLayout: React.FC = () => {
     return (
         <Flex vertical justify='center' align='center'
             style={{
-                backgroundColor: colorBgContainer,
                 height: '100vh',
                 width: '100vw',
+                background: "#f5f5f5",
             }}>
-            <Header style={{
-                padding: 0,
-                background: colorBgContainer,
-                position: 'sticky',
-                top: 0,
-                zIndex: 1,
-                width: '100%',
-                display: 'flex',
-                alignItems: 'center',
-            }}>
-                <Flex justify='flex-start' align='center'>
-                    <Title level={3} style={{ margin: 16 }} >CarSync</Title>
-                </Flex>
-            </Header>
+            <Flex style={{ width: '100%' }}>
+                <Header style={{
+                    padding: 0,
+                    margin: '24px 24px 0px 24px',
+                    background: colorBgContainer,
+                    borderRadius: borderRadiusLG,
+                    position: 'sticky',
+                    top: 0,
+                    zIndex: 1,
+                    width: '100%',
+                    display: 'flex',
+                    alignItems: 'center',
+                }}>
+                    <Flex justify='flex-start' align='center'>
+                        <Flex gap={16}>
+                            <img src={carSyncLogo} className="logo" alt="CarSync logo" width={32} height={32} style={{ margin: '16px 0 16px 16px' }} />
+                            <Title level={3} style={{ margin: '16px 16px 16px 0' }} >CarSync</Title>
+                        </Flex>
+                    </Flex>
+                </Header>
+            </Flex>
             <Layout style={{
                 overflow: 'auto',
                 width: '100%',
@@ -173,7 +181,7 @@ const MainLayout: React.FC = () => {
                                 itemActiveBg: '#0000',
                                 itemSelectedBg: '#0000',
                                 itemHoverBg: '#0000',
-                                itemHoverColor: '#758ebd',
+                                itemHoverColor: '#667d99',
                                 itemColor: '#808080',
                             },
                         },
@@ -188,6 +196,7 @@ const MainLayout: React.FC = () => {
                             onOpenChange={onOpenChange}
                             onSelect={({ key }) => updateSelectedKeys([key], false)}
                             style={{
+                                padding: '16px 0px 16px 0px',
                                 border: 0,
                             }}
                         />
@@ -197,7 +206,7 @@ const MainLayout: React.FC = () => {
                     backgroundColor: 'white',
                     margin: 0,
                     height: '100%',
-                    padding: 24,
+                    padding: collapsedSidebar ? '0px 24px 0px 0px' : '0px 24px 0px 24px',
                     overflow: 'auto',
                     position: 'sticky',
                     insetInlineStart: 0,
@@ -209,7 +218,7 @@ const MainLayout: React.FC = () => {
                     border: 0,
                     top: 0,
                     bottom: 0,
-                    scrollbarWidth: 'thin',
+                    scrollbarWidth: 'none',
                     scrollbarGutter: 'stable',
                 }}>
                     <Routes>

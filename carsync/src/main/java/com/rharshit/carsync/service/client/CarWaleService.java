@@ -2,8 +2,8 @@ package com.rharshit.carsync.service.client;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.rharshit.carsync.common.Utils;
-import com.rharshit.carsync.repository.model.CarModel;
-import com.rharshit.carsync.repository.model.client.CarWaleCarModel;
+import com.rharshit.carsync.model.CarModel;
+import com.rharshit.carsync.model.client.CarWaleCarModel;
 import com.rharshit.carsync.service.ClientService;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;

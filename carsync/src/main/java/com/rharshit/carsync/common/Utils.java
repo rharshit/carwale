@@ -16,4 +16,19 @@ public class Utils {
             log.error("Error waiting for executor to finish", e);
         }
     }
+
+    //TODO: Fix for names with spaces
+    public static String listToRegexMongoQueryParam(String[] values) {
+        if (values == null || values.length == 0) {
+            return "/*";
+        }
+        StringBuilder query = new StringBuilder();
+        query.append("^(");
+        for (String value : values) {
+            query.append(value).append("|");
+        }
+        query.deleteCharAt(query.length() - 1);
+        query.append(")$");
+        return query.toString();
+    }
 }

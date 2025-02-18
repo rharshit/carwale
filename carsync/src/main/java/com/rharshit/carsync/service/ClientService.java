@@ -1,10 +1,10 @@
 package com.rharshit.carsync.service;
 
+import com.rharshit.carsync.model.CarModel;
+import com.rharshit.carsync.model.ClientCarModel;
+import com.rharshit.carsync.model.MakeModel;
 import com.rharshit.carsync.repository.CarModelRepository;
 import com.rharshit.carsync.repository.MakeModelRepository;
-import com.rharshit.carsync.repository.model.CarModel;
-import com.rharshit.carsync.repository.model.ClientCarModel;
-import com.rharshit.carsync.repository.model.MakeModel;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;

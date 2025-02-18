@@ -1,13 +1,15 @@
-package com.rharshit.carsync.repository.model;
+package com.rharshit.carsync.model;
 
 import lombok.Data;
 
 @Data
 public class CarFilter {
-    private String city;
-    private String make;
-    private String model;
-    private String variant;
+    private Integer limit;
+    private Integer skip;
+    private String[] cities;
+    private String[] makes;
+    private String[] models;
+    private String[] variants;
     private Integer minYear;
     private Integer maxYear;
     private Integer minPrice;

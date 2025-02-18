@@ -1,7 +1,8 @@
 package com.rharshit.carsync.controller;
 
-import com.rharshit.carsync.repository.model.CarFilter;
-import com.rharshit.carsync.repository.model.CarModel;
+import com.rharshit.carsync.model.AllCarsResponse;
+import com.rharshit.carsync.model.CarFilter;
+import com.rharshit.carsync.model.CarModel;
 import com.rharshit.carsync.service.CarService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -19,7 +20,7 @@ public class CarController {
     private CarService service;
 
     @PostMapping
-    public List<CarModel> getCars(@RequestBody CarFilter carFilter) {
+    public AllCarsResponse getCars(@RequestBody CarFilter carFilter) {
         return service.getCars(carFilter);
     }
 

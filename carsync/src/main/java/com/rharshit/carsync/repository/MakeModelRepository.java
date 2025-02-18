@@ -1,7 +1,7 @@
 package com.rharshit.carsync.repository;
 
 
-import com.rharshit.carsync.repository.model.MakeModel;
+import com.rharshit.carsync.model.MakeModel;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 

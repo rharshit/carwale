@@ -1,6 +1,6 @@
 package com.rharshit.carsync.service;
 
-import com.rharshit.carsync.repository.model.ClientCarModel;
+import com.rharshit.carsync.model.ClientCarModel;
 import com.rharshit.carsync.service.client.CarWaleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

@@ -1,6 +1,6 @@
 package com.rharshit.carsync.repository;
 
-import com.rharshit.carsync.repository.model.CarModel;
+import com.rharshit.carsync.model.CarModel;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.mongodb.repository.MongoRepository;
@@ -58,6 +58,7 @@ public interface CarModelRepository extends MongoRepository<CarModel, String> {
     @CacheEvict(value = "allCars", allEntries = true)
     void deleteAll();
 
+    @Cacheable("allCars")
     @Query("{'city' : {$regex : ?0}, 'make' : {$regex : ?1}, 'model' : {$regex : ?2}, 'variant' : {$regex : ?3}," +
             "'year' : {$gte : ?4, $lte : ?5}," +
             "'price' : {$gte : ?6, $lte : ?7}," +
@@ -68,7 +69,7 @@ public interface CarModelRepository extends MongoRepository<CarModel, String> {
             "'specs.width' : {$gte : ?16, $lte : ?17}," +
             "'specs.height' : {$gte : ?18, $lte : ?19}," +
             "'specs.wheelbase' : {$gte : ?20, $lte : ?21}}")
-    List<CarModel> findByFilter(String city, String make, String model, String variant,
+    List<CarModel> findByFilter(String cities, String makes, String models, String variants,
                                 Integer minYear, Integer maxYear,
                                 Integer minPrice, Integer maxPrice,
                                 Integer minMileage, Integer maxMileage,
