@@ -122,14 +122,20 @@ export function FilterComponent(filterProps: FilterProps) {
                     wrap
                     justify="space-between"
                     align="flex-start"
+                    gap='small'
                     style={{
                         width: '100%'
                     }}>
-                    <Flex vertical>
+                    <Flex vertical style={{ maxWidth: '100%' }}>
                         <Segmented
                             options={filterOptions}
                             value={selectedFilter}
                             onChange={setSelectedFilter}
+                            style={{
+                                width: 'auto',
+                                overflow: 'scroll',
+                                scrollbarWidth: 'none',
+                            }}
                         />
                         <Flex>
                             {
