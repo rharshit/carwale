@@ -201,6 +201,38 @@ export function FilterComponent(filterProps: FilterProps) {
         maxWheelbase
     ])
 
+    useEffect(() => {
+        setSelectedCities([]);
+
+        setMinYear(carFilterValues?.minYear ?? 0)
+        setMaxYear(carFilterValues?.maxYear ?? 0)
+
+        setMinPrice(carFilterValues?.minPrice ?? 0)
+        setMaxPrice(carFilterValues?.maxPrice ?? 0)
+
+        setMinMileage(carFilterValues?.minMileage ?? 0)
+        setMaxMileage(carFilterValues?.maxMileage ?? 0)
+
+        setMinPower(carFilterValues?.minPower ?? 0)
+        setMaxPower(carFilterValues?.maxPower ?? 0)
+
+        setMinTorque(carFilterValues?.minTorque ?? 0)
+        setMaxTorque(carFilterValues?.maxTorque ?? 0)
+
+        setMinLength(carFilterValues?.minLength ?? 0)
+        setMaxLength(carFilterValues?.maxLength ?? 0)
+
+        setMinWidth(carFilterValues?.minWidth ?? 0)
+        setMaxWidth(carFilterValues?.maxWidth ?? 0)
+
+        setMinHeight(carFilterValues?.minHeight ?? 0)
+        setMaxHeight(carFilterValues?.maxHeight ?? 0)
+
+        setMinWheelbase(carFilterValues?.minWheelbase ?? 0)
+        setMaxWheelbase(carFilterValues?.maxWheelbase ?? 0)
+
+    }, [carFilterValues])
+
     function disableAllFilters() {
         setSelectedCities([])
         setCarFilterEnabled(false);
