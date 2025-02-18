@@ -62,6 +62,7 @@ export function FilterComponent(filterProps: FilterProps) {
     const [maxWheelbase, setMaxWheelbase] = useState<number>(0);
 
     const [isAnyFilterEnabled, setAnyFiltereEnabled] = useState<boolean>(false)
+    const [isApplyEnabled, setIsApplyEnabled] = useState<boolean>(true)
 
     const filterOptions: SegmentedOptions<valueType> = [
         {
@@ -164,6 +165,42 @@ export function FilterComponent(filterProps: FilterProps) {
         isWheelbaseFilterEnabled
     ])
 
+    useEffect(() => {
+        setIsApplyEnabled(true)
+    }, [
+        isCityFilterEnabled,
+        isCarFilterEnabled,
+        isYearFilterEnabled,
+        isPriceFilterEnabled,
+        isMileageFilterEnabled,
+        isPowerFilterEnabled,
+        isTorqueFilterEnabled,
+        isLengthFilterEnabled,
+        isWidthFilterEnabled,
+        isHeightFilterEnabled,
+        isWheelbaseFilterEnabled,
+        carFilterValues,
+        selectedCities,
+        minYear,
+        maxYear,
+        minPrice,
+        maxPrice,
+        minMileage,
+        maxMileage,
+        minPower,
+        maxPower,
+        minTorque,
+        maxTorque,
+        minLength,
+        maxLength,
+        minWidth,
+        maxWidth,
+        minHeight,
+        maxHeight,
+        minWheelbase,
+        maxWheelbase
+    ])
+
     function disableAllFilters() {
         setSelectedCities([])
         setCarFilterEnabled(false);
@@ -229,6 +266,7 @@ export function FilterComponent(filterProps: FilterProps) {
             filter.maxWheelbase = maxWheelbase;
         }
         onApplyFilter(filter);
+        setIsApplyEnabled(false)
     }
 
     return (
@@ -395,7 +433,7 @@ export function FilterComponent(filterProps: FilterProps) {
                     </Flex>
                     <Flex gap='small'>
                         {isAnyFilterEnabled && <Button onClick={() => disableAllFilters()}>Reset filters</Button>}
-                        <Button onClick={() => createFilter()}>Apply</Button>
+                        <Button type="primary" disabled={!isApplyEnabled} onClick={() => createFilter()}>Apply</Button>
                     </Flex>
                 </Flex>
             </Flex>
