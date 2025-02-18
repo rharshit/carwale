@@ -61,6 +61,8 @@ export function FilterComponent(filterProps: FilterProps) {
     const [minWheelbase, setMinWheelbase] = useState<number>(0);
     const [maxWheelbase, setMaxWheelbase] = useState<number>(0);
 
+    const [isAnyFilterEnabled, setAnyFiltereEnabled] = useState<boolean>(false)
+
     const filterOptions: SegmentedOptions<valueType> = [
         {
             label: (
@@ -133,6 +135,48 @@ export function FilterComponent(filterProps: FilterProps) {
     useEffect(() => {
         loadFilters();
     }, []);
+
+    useEffect(() => {
+        setAnyFiltereEnabled(
+            isCityFilterEnabled ||
+            isCarFilterEnabled ||
+            isYearFilterEnabled ||
+            isPriceFilterEnabled ||
+            isMileageFilterEnabled ||
+            isPowerFilterEnabled ||
+            isTorqueFilterEnabled ||
+            isLengthFilterEnabled ||
+            isWidthFilterEnabled ||
+            isHeightFilterEnabled ||
+            isWheelbaseFilterEnabled
+        )
+    }, [
+        isCityFilterEnabled,
+        isCarFilterEnabled,
+        isYearFilterEnabled,
+        isPriceFilterEnabled,
+        isMileageFilterEnabled,
+        isPowerFilterEnabled,
+        isTorqueFilterEnabled,
+        isLengthFilterEnabled,
+        isWidthFilterEnabled,
+        isHeightFilterEnabled,
+        isWheelbaseFilterEnabled
+    ])
+
+    function disableAllFilters() {
+        setSelectedCities([])
+        setCarFilterEnabled(false);
+        setYearFilterEnabled(false);
+        setPriceFilterEnabled(false);
+        setMileageFilterEnabled(false);
+        setPowerFilterEnabled(false);
+        setTorqueFilterEnabled(false);
+        setLengthFilterEnabled(false);
+        setWidthFilterEnabled(false);
+        setHeightFilterEnabled(false);
+        setWheelbaseFilterEnabled(false);
+    }
 
     function loadFilters() {
         Promise.resolve(get('/car/filters').then(res => {
@@ -349,7 +393,10 @@ export function FilterComponent(filterProps: FilterProps) {
                             }
                         </Flex>
                     </Flex>
-                    <Button onClick={() => createFilter()}>Apply</Button>
+                    <Flex gap='small'>
+                        {isAnyFilterEnabled && <Button onClick={() => disableAllFilters()}>Reset filters</Button>}
+                        <Button onClick={() => createFilter()}>Apply</Button>
+                    </Flex>
                 </Flex>
             </Flex>
         </>
