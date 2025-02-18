@@ -11,15 +11,17 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
+import static com.rharshit.carsync.common.Constants.CACHE_KEY_ALL_MODELS;
+
 @Repository
 public interface MakeModelRepository extends MongoRepository<MakeModel, String> {
     @NonNull
-    @Cacheable("allMakeModels")
+    @Cacheable(CACHE_KEY_ALL_MODELS)
     @Query(value = "{}", fields = "{ '_id': 1, 'models.variants.cars': 0}")
     List<MakeModel> findAllWithoutCars();
 
     @NonNull
     @Override
-    @CacheEvict(value = "allMakeModels", allEntries = true)
+    @CacheEvict(value = CACHE_KEY_ALL_MODELS, allEntries = true)
     <S extends MakeModel> List<S> saveAll(@NonNull Iterable<S> entities);
 }

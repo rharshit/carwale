@@ -9,13 +9,15 @@ import org.springframework.data.mongodb.core.aggregation.GroupOperation;
 
 import java.util.List;
 
+import static com.rharshit.carsync.common.Constants.CACHE_KEY_ALL_CARS;
+
 public class AppRepositoryImpl implements AppRepository {
 
     @Autowired
     MongoTemplate mongoTemplate;
 
     @Override
-    @Cacheable("allCars")
+    @Cacheable(CACHE_KEY_ALL_CARS)
     public CarFilter getCarFilterValues() {
         GroupOperation year = Aggregation.group()
                 .min("$year").as("minYear")
