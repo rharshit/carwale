@@ -7,7 +7,6 @@ import { get } from "../../../service/api";
 import CarFilter from "./CarFilter";
 import CityFilter from "./CityFilter";
 import { SliderFilter } from "./SliderFilter";
-import WheelbaseFilter from "./WheelbaseFilter";
 
 const { Title, Paragraph, Text, Link } = Typography;
 
@@ -57,6 +56,10 @@ export function FilterComponent(filterProps: FilterProps) {
     const [isHeightFilterEnabled, setHeightFilterEnabled] = useState<boolean>(false);
     const [minHeight, setMinHeight] = useState<number>(0);
     const [maxHeight, setMaxHeight] = useState<number>(0);
+
+    const [isWheelbaseFilterEnabled, setWheelbaseFilterEnabled] = useState<boolean>(false);
+    const [minWheelbase, setMinWheelbase] = useState<number>(0);
+    const [maxWheelbase, setMaxWheelbase] = useState<number>(0);
 
     const filterOptions: SegmentedOptions<valueType> = [
         {
@@ -121,7 +124,7 @@ export function FilterComponent(filterProps: FilterProps) {
         },
         {
             label: (
-                <Text>Wheelbase</Text>
+                <Text disabled={selectedFilter != 'Wheelbase' && !isWheelbaseFilterEnabled}>Wheelbase</Text>
             ),
             value: 'Wheelbase'
         },
@@ -176,6 +179,10 @@ export function FilterComponent(filterProps: FilterProps) {
         if (isHeightFilterEnabled) {
             filter.minHeight = minHeight;
             filter.maxHeight = maxHeight;
+        }
+        if (isWheelbaseFilterEnabled) {
+            filter.minWheelbase = minWheelbase;
+            filter.maxWheelbase = maxWheelbase;
         }
         onApplyFilter(filter);
     }
@@ -312,7 +319,16 @@ export function FilterComponent(filterProps: FilterProps) {
                                 />
                             }
                             {
-                                selectedFilter == 'Wheelbase' && <WheelbaseFilter />
+                                selectedFilter == 'Wheelbase' && <SliderFilter
+                                    isFilterEnabled={isWheelbaseFilterEnabled}
+                                    setFilterEnabled={setWheelbaseFilterEnabled}
+                                    lowerLimit={carFilterValues?.minWheelbase ?? 0}
+                                    minValue={minWheelbase}
+                                    setMinValue={setMinWheelbase}
+                                    higherLimit={carFilterValues?.maxWheelbase ?? 0}
+                                    maxValue={maxWheelbase}
+                                    setMaxValue={setMaxWheelbase}
+                                />
                             }
                         </Flex>
                     </Flex>
