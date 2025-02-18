@@ -7,7 +7,6 @@ import { get } from "../../../service/api";
 import CarFilter from "./CarFilter";
 import CityFilter from "./CityFilter";
 import HeightFilter from "./HeightFilter";
-import LengthFilter from "./LengthFilter";
 import { SliderFilter } from "./SliderFilter";
 import WheelbaseFilter from "./WheelbaseFilter";
 import WidthFilter from "./WidthFilter";
@@ -48,6 +47,10 @@ export function FilterComponent(filterProps: FilterProps) {
     const [isTorqueFilterEnabled, setTorqueFilterEnabled] = useState<boolean>(false);
     const [minTorque, setMinTorque] = useState<number>(0);
     const [maxTorque, setMaxTorque] = useState<number>(0);
+
+    const [isLengthFilterEnabled, setLengthFilterEnabled] = useState<boolean>(false);
+    const [minLength, setMinLength] = useState<number>(0);
+    const [maxLength, setMaxLength] = useState<number>(0);
 
     const filterOptions: SegmentedOptions<valueType> = [
         {
@@ -94,7 +97,7 @@ export function FilterComponent(filterProps: FilterProps) {
         },
         {
             label: (
-                <Text>Length</Text>
+                <Text disabled={selectedFilter != 'Length' && !isLengthFilterEnabled}>Length</Text>
             ),
             value: 'Length'
         },
@@ -155,6 +158,10 @@ export function FilterComponent(filterProps: FilterProps) {
         if (isTorqueFilterEnabled) {
             filter.minTorque = minTorque;
             filter.maxTorque = maxTorque;
+        }
+        if (isLengthFilterEnabled) {
+            filter.minLength = minLength;
+            filter.maxLength = maxLength;
         }
         onApplyFilter(filter);
     }
@@ -255,7 +262,16 @@ export function FilterComponent(filterProps: FilterProps) {
                                 />
                             }
                             {
-                                selectedFilter == 'Length' && <LengthFilter />
+                                selectedFilter == 'Length' && <SliderFilter
+                                    isFilterEnabled={isLengthFilterEnabled}
+                                    setFilterEnabled={setLengthFilterEnabled}
+                                    lowerLimit={carFilterValues?.minLength ?? 0}
+                                    minValue={minLength}
+                                    setMinValue={setMinLength}
+                                    higherLimit={carFilterValues?.maxLength ?? 0}
+                                    maxValue={maxLength}
+                                    setMaxValue={setMaxLength}
+                                />
                             }
                             {
                                 selectedFilter == 'Width' && <WidthFilter />
