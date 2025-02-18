@@ -1,7 +1,7 @@
 import { Flex, Typography } from 'antd';
 import React from 'react';
 import { post } from '../../service/api';
-import { CarFilter, FilterComponent } from './FilterComponent';
+import { CarFilter, FilterComponent } from './filter/FilterComponent';
 
 const { Title } = Typography;
 
