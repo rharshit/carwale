@@ -12,7 +12,6 @@ import java.util.List;
 @Repository
 public interface MakeModelRepository extends MongoRepository<MakeModel, String> {
     @NonNull
-    @Override
     @Query(value = "{}", fields = "{ '_id': 1, 'models.variants.cars': 0}")
-    List<MakeModel> findAll();
+    List<MakeModel> findAllWithoutCars();
 }
