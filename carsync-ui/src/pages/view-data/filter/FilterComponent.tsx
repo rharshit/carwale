@@ -21,79 +21,83 @@ type FilterProps = {
     onApplyFilter: (carFilter: CarFilter) => void
 }
 
-const filterOptions: SegmentedOptions<valueType> = [
-    {
-        label: (
-            <Text>City</Text>
-        ),
-        value: 'City'
-    },
-    {
-        label: (
-            <Text>Car</Text>
-        ),
-        value: 'Car'
-    },
-    {
-        label: (
-            <Text>Year</Text>
-        ),
-        value: 'Year'
-    },
-    {
-        label: (
-            <Text>Price</Text>
-        ),
-        value: 'Price'
-    },
-    {
-        label: (
-            <Text>Mileage</Text>
-        ),
-        value: 'Mileage'
-    },
-    {
-        label: (
-            <Text>Power</Text>
-        ),
-        value: 'Power'
-    },
-    {
-        label: (
-            <Text>Torque</Text>
-        ),
-        value: 'Torque'
-    },
-    {
-        label: (
-            <Text>Length</Text>
-        ),
-        value: 'Length'
-    },
-    {
-        label: (
-            <Text>Width</Text>
-        ),
-        value: 'Width'
-    },
-    {
-        label: (
-            <Text>Height</Text>
-        ),
-        value: 'Height'
-    },
-    {
-        label: (
-            <Text>Wheelbase</Text>
-        ),
-        value: 'Wheelbase'
-    },
-]
-
 export function FilterComponent(filterProps: FilterProps) {
     const { onApplyFilter } = filterProps
+
     const [selectedFilter, setSelectedFilter] = useState<string | number>();
     const [carFilterValues, setCarFilterValues] = useState<CarFilterResponse>();
+
+    const [isCityFilterEnabled, setCityFilterEnabled] = useState<boolean>(false);
+    const [selectedCities, setSelectedCities] = useState<string[]>([]);
+
+    const filterOptions: SegmentedOptions<valueType> = [
+        {
+            label: (
+                <Text disabled={selectedFilter != 'City' && !isCityFilterEnabled}>City</Text>
+            ),
+            value: 'City'
+        },
+        {
+            label: (
+                <Text>Car</Text>
+            ),
+            value: 'Car'
+        },
+        {
+            label: (
+                <Text>Year</Text>
+            ),
+            value: 'Year'
+        },
+        {
+            label: (
+                <Text>Price</Text>
+            ),
+            value: 'Price'
+        },
+        {
+            label: (
+                <Text>Mileage</Text>
+            ),
+            value: 'Mileage'
+        },
+        {
+            label: (
+                <Text>Power</Text>
+            ),
+            value: 'Power'
+        },
+        {
+            label: (
+                <Text>Torque</Text>
+            ),
+            value: 'Torque'
+        },
+        {
+            label: (
+                <Text>Length</Text>
+            ),
+            value: 'Length'
+        },
+        {
+            label: (
+                <Text>Width</Text>
+            ),
+            value: 'Width'
+        },
+        {
+            label: (
+                <Text>Height</Text>
+            ),
+            value: 'Height'
+        },
+        {
+            label: (
+                <Text>Wheelbase</Text>
+            ),
+            value: 'Wheelbase'
+        },
+    ]
 
     useEffect(() => {
         loadFilters();
@@ -112,6 +116,7 @@ export function FilterComponent(filterProps: FilterProps) {
     //TODO: Populate the filter
     function createFilter(): void {
         const filter: CarFilter = {}
+        filter.cities = selectedCities
         onApplyFilter(filter)
     }
 
@@ -126,7 +131,7 @@ export function FilterComponent(filterProps: FilterProps) {
                     style={{
                         width: '100%'
                     }}>
-                    <Flex vertical style={{ maxWidth: '100%' }}>
+                    <Flex vertical style={{ maxWidth: '100%' }} gap='small'>
                         <Segmented
                             options={filterOptions}
                             value={selectedFilter}
@@ -139,7 +144,13 @@ export function FilterComponent(filterProps: FilterProps) {
                         />
                         <Flex>
                             {
-                                selectedFilter == 'City' && <CityFilter />
+                                selectedFilter == 'City' && <CityFilter
+                                    allCities={carFilterValues?.cities ?? []}
+                                    isCityFilterEnabled={isCityFilterEnabled}
+                                    setCityFilterEnabled={setCityFilterEnabled}
+                                    selectedCities={selectedCities}
+                                    setSelectedCities={setSelectedCities}
+                                />
                             }
                             {
                                 selectedFilter == 'Car' && <CarFilter />
