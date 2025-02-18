@@ -9,7 +9,6 @@ import CityFilter from "./CityFilter";
 import HeightFilter from "./HeightFilter";
 import { SliderFilter } from "./SliderFilter";
 import WheelbaseFilter from "./WheelbaseFilter";
-import WidthFilter from "./WidthFilter";
 
 const { Title, Paragraph, Text, Link } = Typography;
 
@@ -51,6 +50,10 @@ export function FilterComponent(filterProps: FilterProps) {
     const [isLengthFilterEnabled, setLengthFilterEnabled] = useState<boolean>(false);
     const [minLength, setMinLength] = useState<number>(0);
     const [maxLength, setMaxLength] = useState<number>(0);
+
+    const [isWidthFilterEnabled, setWidthFilterEnabled] = useState<boolean>(false);
+    const [minWidth, setMinWidth] = useState<number>(0);
+    const [maxWidth, setMaxWidth] = useState<number>(0);
 
     const filterOptions: SegmentedOptions<valueType> = [
         {
@@ -103,7 +106,7 @@ export function FilterComponent(filterProps: FilterProps) {
         },
         {
             label: (
-                <Text>Width</Text>
+                <Text disabled={selectedFilter != 'Width' && !isWidthFilterEnabled}>Width</Text>
             ),
             value: 'Width'
         },
@@ -162,6 +165,10 @@ export function FilterComponent(filterProps: FilterProps) {
         if (isLengthFilterEnabled) {
             filter.minLength = minLength;
             filter.maxLength = maxLength;
+        }
+        if (isWidthFilterEnabled) {
+            filter.minWidth = minWidth;
+            filter.maxWidth = maxWidth;
         }
         onApplyFilter(filter);
     }
@@ -274,7 +281,16 @@ export function FilterComponent(filterProps: FilterProps) {
                                 />
                             }
                             {
-                                selectedFilter == 'Width' && <WidthFilter />
+                                selectedFilter == 'Width' && <SliderFilter
+                                    isFilterEnabled={isWidthFilterEnabled}
+                                    setFilterEnabled={setWidthFilterEnabled}
+                                    lowerLimit={carFilterValues?.minWidth ?? 0}
+                                    minValue={minWidth}
+                                    setMinValue={setMinWidth}
+                                    higherLimit={carFilterValues?.maxWidth ?? 0}
+                                    maxValue={maxWidth}
+                                    setMaxValue={setMaxWidth}
+                                />
                             }
                             {
                                 selectedFilter == 'Height' && <HeightFilter />
