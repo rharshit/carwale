@@ -270,7 +270,17 @@ export function FilterComponent(filterProps: FilterProps) {
     //TODO: Populate the filter
     function createFilter(): void {
         const filter: CarFilter = {};
+
         filter.cities = selectedCities;
+
+        const carDetails = selectedCars.map(car => JSON.parse(car) as string[])
+        const makes = new Set(carDetails.map(car => car[0]))
+        const models = new Set(carDetails.map(car => car[1]))
+        const variants = new Set(carDetails.map(car => car[2]))
+        filter.makes = [...makes];
+        filter.models = [...models];
+        filter.variants = [...variants];
+
         if (isYearFilterEnabled) {
             filter.minYear = minYear;
             filter.maxYear = maxYear;
