@@ -4,7 +4,7 @@ import { SegmentedOptions } from "antd/es/segmented";
 import { valueType } from "antd/es/statistic/utils";
 import { useEffect, useState } from "react";
 import { get } from "../../../service/api";
-import CarFilter from "./CarFilter";
+import { CarFilter } from "./CarFilter";
 import CityFilter from "./CityFilter";
 import { SliderFilter } from "./SliderFilter";
 
@@ -24,6 +24,8 @@ export function FilterComponent(filterProps: FilterProps) {
     const [selectedCities, setSelectedCities] = useState<string[]>([]);
 
     const [isCarFilterEnabled, setCarFilterEnabled] = useState<boolean>(false);
+    const [allMakeModels, setAllMakeModels] = useState<MakeModels[]>([])
+    const [selectedCars, setSelectedCars] = useState<string[]>([]);
 
     const [isYearFilterEnabled, setYearFilterEnabled] = useState<boolean>(false);
     const [minYear, setMinYear] = useState<number>(0);
@@ -138,6 +140,10 @@ export function FilterComponent(filterProps: FilterProps) {
     }, []);
 
     useEffect(() => {
+        setCarFilterEnabled(selectedCars.length != 0)
+    }, [selectedCars])
+
+    useEffect(() => {
         setAnyFiltereEnabled(
             isCityFilterEnabled ||
             isCarFilterEnabled ||
@@ -181,6 +187,7 @@ export function FilterComponent(filterProps: FilterProps) {
         isWheelbaseFilterEnabled,
         carFilterValues,
         selectedCities,
+        selectedCars,
         minYear,
         maxYear,
         minPrice,
@@ -203,6 +210,8 @@ export function FilterComponent(filterProps: FilterProps) {
 
     useEffect(() => {
         setSelectedCities([]);
+
+        setAllMakeModels(carFilterValues?.makeModels ?? [])
 
         setMinYear(carFilterValues?.minYear ?? 0)
         setMaxYear(carFilterValues?.maxYear ?? 0)
@@ -235,6 +244,7 @@ export function FilterComponent(filterProps: FilterProps) {
 
     function disableAllFilters() {
         setSelectedCities([])
+        setSelectedCars([])
         setCarFilterEnabled(false);
         setYearFilterEnabled(false);
         setPriceFilterEnabled(false);
@@ -334,7 +344,11 @@ export function FilterComponent(filterProps: FilterProps) {
                                 />
                             }
                             {
-                                selectedFilter == 'Car' && <CarFilter />
+                                selectedFilter == 'Car' && <CarFilter
+                                    allMakeModels={allMakeModels}
+                                    selectedCars={selectedCars}
+                                    setSelectedCars={setSelectedCars}
+                                />
                             }
                             {
                                 selectedFilter == 'Year' && <SliderFilter
@@ -473,11 +487,13 @@ export function FilterComponent(filterProps: FilterProps) {
     );
 }
 
-type MakeModels = {
+export type MakeModels = {
     make: string,
     models: {
         name: string,
-        variants: string[]
+        variants: {
+            name: string
+        }[]
     }[]
 }
 
