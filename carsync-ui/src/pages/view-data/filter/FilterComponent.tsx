@@ -7,6 +7,7 @@ import { get } from "../../../service/api";
 import { CarFilter } from "./CarFilter";
 import CityFilter from "./CityFilter";
 import { SliderFilter } from "./SliderFilter";
+import { SortOptions } from "./SortOptions";
 
 const { Text } = Typography;
 
@@ -14,11 +15,13 @@ type FilterProps = {
     onApplyFilter: (carFilter: CarFilter) => void
 }
 
-export function FilterComponent(filterProps: FilterProps) {
+export function FilterSortComponent(filterProps: FilterProps) {
     const { onApplyFilter } = filterProps
 
-    const [selectedFilter, setSelectedFilter] = useState<string | number>();
+    const [selectedFilter, setSelectedFilter] = useState<string | number>('Sort');
     const [carFilterValues, setCarFilterValues] = useState<CarFilterResponse>();
+
+    const [isSortEnabled, setSortEnabled] = useState<boolean>(false);
 
     const [isCityFilterEnabled, setCityFilterEnabled] = useState<boolean>(false);
     const [selectedCities, setSelectedCities] = useState<string[]>([]);
@@ -67,6 +70,12 @@ export function FilterComponent(filterProps: FilterProps) {
     const [isApplyEnabled, setIsApplyEnabled] = useState<boolean>(true)
 
     const filterOptions: SegmentedOptions<valueType> = [
+        {
+            label: (
+                <Text disabled={selectedFilter != 'Sort' && !isSortEnabled}>Sort</Text>
+            ),
+            value: 'Sort'
+        },
         {
             label: (
                 <Text disabled={selectedFilter != 'City' && !isCityFilterEnabled}>City</Text>
@@ -345,6 +354,9 @@ export function FilterComponent(filterProps: FilterProps) {
                                 }}
                             />
                             <Flex style={{ padding: 0 }}>
+                                {
+                                    selectedFilter == 'Sort' && <SortOptions />
+                                }
                                 {
                                     selectedFilter == 'City' && <CityFilter
                                         allCities={carFilterValues?.cities ?? []}
