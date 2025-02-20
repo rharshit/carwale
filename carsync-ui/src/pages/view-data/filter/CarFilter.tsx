@@ -1,4 +1,4 @@
-import { TreeSelect } from "antd";
+import { Flex, TreeSelect } from "antd";
 import { DataNode } from "antd/es/tree";
 import { MakeModels } from "./FilterComponent";
 
@@ -60,12 +60,18 @@ export function CarFilter(carFilterProps: CarFilterProps) {
 
 
     return <>
-        <TreeSelect
-            treeData={getTreeData()}
-            value={selectedCars}
-            {...tProps}
-            allowClear
-            autoClearSearchValue={false}
-        />
+        <Flex style={{ maxHeight: 200, width: 690 }}>
+            <TreeSelect
+                treeData={getTreeData()}
+                value={selectedCars}
+                {...tProps}
+                placeholder="Select cars"
+                allowClear
+                autoClearSearchValue={false}
+                style={{ maxHeight: 200, maxWidth: 690, minWidth: 420 }}
+                maxTagCount={20}
+                maxTagTextLength={20}
+            />
+        </Flex>
     </>;
 }

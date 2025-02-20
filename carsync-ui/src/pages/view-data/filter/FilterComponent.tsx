@@ -343,7 +343,7 @@ export function FilterComponent(filterProps: FilterProps) {
                                 scrollbarWidth: 'none',
                             }}
                         />
-                        <Flex style={{ padding: 8 }}>
+                        <Flex style={{ padding: 0 }}>
                             {
                                 selectedFilter == 'City' && <CityFilter
                                     allCities={carFilterValues?.cities ?? []}

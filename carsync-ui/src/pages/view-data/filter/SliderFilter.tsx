@@ -114,10 +114,10 @@ export function SliderFilter(sliderFilterProps: SliderFilterProps) {
     return (
         <>
             <Flex
-                gap='large'
+                gap='small'
                 justify='space-around'
                 align='center'
-                style={{ width: 'auto', margin: '0px 0px 16px 0px' }}>
+                style={{ width: 'auto', margin: '8px 0px 24px 0px' }}>
                 <Flex style={{ rotate: '-90deg' }}>
                     <Switch
                         checkedChildren={<CheckOutlined style={{ rotate: '90deg' }} />}
@@ -157,7 +157,7 @@ export function SliderFilter(sliderFilterProps: SliderFilterProps) {
                         }}
                         onChange={onChange}
                         onChangeComplete={onChangeComplete}
-                        style={{ width: 690 }}
+                        style={{ width: 609 }}
                     />
                 </Flex>
             </Flex>
