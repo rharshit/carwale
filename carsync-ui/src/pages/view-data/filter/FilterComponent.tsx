@@ -4,7 +4,7 @@ import { SegmentedOptions } from "antd/es/segmented";
 import { valueType } from "antd/es/statistic/utils";
 import { useEffect, useState } from "react";
 import { get } from "../../../service/api";
-import { CarFilter } from "./CarFilter";
+import { CarFilterComponent } from "./CarFilterComponent";
 import CityFilter from "./CityFilter";
 import { SliderFilter } from "./SliderFilter";
 import { SortOptions } from "./SortOptions";
@@ -367,7 +367,7 @@ export function FilterSortComponent(filterProps: FilterProps) {
                                     />
                                 }
                                 {
-                                    selectedFilter == 'Car' && <CarFilter
+                                    selectedFilter == 'Car' && <CarFilterComponent
                                         allMakeModels={allMakeModels}
                                         selectedCars={selectedCars}
                                         setSelectedCars={setSelectedCars}

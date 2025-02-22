@@ -12,7 +12,7 @@ type CarFilterProps = {
 
 const dataNodeComparator = ((a: DataNode, b: DataNode) => (a.title ?? '').toString().localeCompare((b.title ?? '').toString()))
 
-export function CarFilter(carFilterProps: CarFilterProps) {
+export function CarFilterComponent(carFilterProps: CarFilterProps) {
     const { allMakeModels, selectedCars, setSelectedCars } = carFilterProps;
 
     const onChange = (newValue: string[]) => {
