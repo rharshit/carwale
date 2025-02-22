@@ -60,28 +60,6 @@ public interface CarModelRepository extends MongoRepository<CarModel, String>, A
     @CacheEvict(value = CACHE_KEY_ALL_CARS, allEntries = true)
     void deleteAll();
 
-    @Cacheable(CACHE_KEY_ALL_CARS)
-    @Query("{'city' : {$regex : ?0}, 'make' : {$regex : ?1}, 'model' : {$regex : ?2}, 'variant' : {$regex : ?3}," +
-            "'year' : {$gte : ?4, $lte : ?5}," +
-            "'price' : {$gte : ?6, $lte : ?7}," +
-            "'mileage' : {$gte : ?8, $lte : ?9}," +
-            "'specs.enginePower' : {$gte : ?10, $lte : ?11}," +
-            "'specs.engineTorque' : {$gte : ?12, $lte : ?13}," +
-            "'specs.length' : {$gte : ?14, $lte : ?15}," +
-            "'specs.width' : {$gte : ?16, $lte : ?17}," +
-            "'specs.height' : {$gte : ?18, $lte : ?19}," +
-            "'specs.wheelbase' : {$gte : ?20, $lte : ?21}}")
-    List<CarModel> findByFilter(String cities, String makes, String models, String variants,
-                                Integer minYear, Integer maxYear,
-                                Integer minPrice, Integer maxPrice,
-                                Integer minMileage, Integer maxMileage,
-                                Integer minPower, Integer maxPower,
-                                Integer minTorque, Integer maxTorque,
-                                Integer minLength, Integer maxLength,
-                                Integer minWidth, Integer maxWidth,
-                                Integer minHeight, Integer maxHeight,
-                                Integer minWheelbase, Integer maxWheelbase);
-
     @Query("{'city' : { $exists: false }}")
     List<CarModel> findCarsWithoutCity();
 }

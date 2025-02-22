@@ -10,9 +10,6 @@ import org.springframework.stereotype.Service;
 import java.util.Collections;
 import java.util.List;
 
-import static com.rharshit.carsync.common.Utils.listToRegexMongoQueryParam;
-
-
 @Slf4j
 @Service
 public class CarService {
@@ -30,10 +27,12 @@ public class CarService {
         AllCarsResponse response = new AllCarsResponse();
         try {
             List<CarModel> cars = getCarsByFilter(carFilter);
-            response.setCars(cars.stream().skip(carFilter.getSkip()).limit(carFilter.getLimit()).toList());
+            int skip = carFilter.getSkip() == null ? 0 : carFilter.getSkip();
+            int limit = carFilter.getLimit() == null ? Integer.MAX_VALUE : carFilter.getLimit();
+            response.setCars(cars.stream().skip(skip).limit(limit).toList());
             response.setTotal(cars.size());
             response.setLength(response.getCars().size());
-            response.setLoadMore(carFilter.getSkip() + response.getCars().size() < cars.size());
+            response.setLoadMore(skip + response.getCars().size() < cars.size());
         } catch (Exception e) {
             response.setError(e.getLocalizedMessage());
             response.setSuccess(false);
@@ -43,102 +42,10 @@ public class CarService {
 
     public List<CarModel> getCarsByFilter(CarFilter carFilter) {
         try {
-            verifyFilter(carFilter);
-            return carModelRepository.findByFilter(
-                            listToRegexMongoQueryParam(carFilter.getCities()),
-                            listToRegexMongoQueryParam(carFilter.getMakes()),
-                            listToRegexMongoQueryParam(carFilter.getModels()),
-                            listToRegexMongoQueryParam(carFilter.getVariants()),
-                    carFilter.getMinYear(), carFilter.getMaxYear(),
-                    carFilter.getMinPrice(), carFilter.getMaxPrice(),
-                    carFilter.getMinMileage(), carFilter.getMaxMileage(),
-                    carFilter.getMinPower(), carFilter.getMaxPower(),
-                    carFilter.getMinTorque(), carFilter.getMaxTorque(),
-                    carFilter.getMinLength(), carFilter.getMaxLength(),
-                    carFilter.getMinWidth(), carFilter.getMaxWidth(),
-                    carFilter.getMinHeight(), carFilter.getMaxHeight(),
-                    carFilter.getMinWheelbase(), carFilter.getMaxWheelbase());
+            return carModelRepository.findByFilters(carFilter);
         } catch (Exception e) {
             log.error("Error fetching list of cars", e);
             return Collections.emptyList();
-        }
-    }
-
-    private void verifyFilter(CarFilter carFilter) {
-        if (carFilter == null) {
-            throw new IllegalArgumentException("Filter cannot be null");
-        }
-        if (carFilter.getLimit() == null) {
-            carFilter.setLimit(Integer.MAX_VALUE);
-        }
-        if (carFilter.getSkip() == null) {
-            carFilter.setSkip(0);
-        }
-        if (carFilter.getCities() == null) {
-            carFilter.setCities(new String[0]);
-        }
-        if (carFilter.getMakes() == null) {
-            carFilter.setMakes(new String[0]);
-        }
-        if (carFilter.getModels() == null) {
-            carFilter.setModels(new String[0]);
-        }
-        if (carFilter.getVariants() == null) {
-            carFilter.setVariants(new String[0]);
-        }
-        if (carFilter.getMinYear() == null) {
-            carFilter.setMinYear(0);
-        }
-        if (carFilter.getMaxYear() == null) {
-            carFilter.setMaxYear(Integer.MAX_VALUE);
-        }
-        if (carFilter.getMinPrice() == null) {
-            carFilter.setMinPrice(0);
-        }
-        if (carFilter.getMaxPrice() == null) {
-            carFilter.setMaxPrice(Integer.MAX_VALUE);
-        }
-        if (carFilter.getMinMileage() == null) {
-            carFilter.setMinMileage(0);
-        }
-        if (carFilter.getMaxMileage() == null) {
-            carFilter.setMaxMileage(Integer.MAX_VALUE);
-        }
-        if (carFilter.getMinPower() == null) {
-            carFilter.setMinPower(0);
-        }
-        if (carFilter.getMaxPower() == null) {
-            carFilter.setMaxPower(Integer.MAX_VALUE);
-        }
-        if (carFilter.getMinTorque() == null) {
-            carFilter.setMinTorque(0);
-        }
-        if (carFilter.getMaxTorque() == null) {
-            carFilter.setMaxTorque(Integer.MAX_VALUE);
-        }
-        if (carFilter.getMinLength() == null) {
-            carFilter.setMinLength(0);
-        }
-        if (carFilter.getMaxLength() == null) {
-            carFilter.setMaxLength(Integer.MAX_VALUE);
-        }
-        if (carFilter.getMinWidth() == null) {
-            carFilter.setMinWidth(0);
-        }
-        if (carFilter.getMaxWidth() == null) {
-            carFilter.setMaxWidth(Integer.MAX_VALUE);
-        }
-        if (carFilter.getMinHeight() == null) {
-            carFilter.setMinHeight(0);
-        }
-        if (carFilter.getMaxHeight() == null) {
-            carFilter.setMaxHeight(Integer.MAX_VALUE);
-        }
-        if (carFilter.getMinWheelbase() == null) {
-            carFilter.setMinWheelbase(0);
-        }
-        if (carFilter.getMaxWheelbase() == null) {
-            carFilter.setMaxWheelbase(Integer.MAX_VALUE);
         }
     }
 
