@@ -1,7 +1,7 @@
 import { Flex, Typography } from 'antd';
 import React, { useEffect, useState } from 'react';
 import { post } from '../../service/api';
-import { CarFilter, FilterComponent } from './filter/FilterComponent';
+import { CarFilter, FilterSortComponent } from './filter/FilterComponent';
 
 const { Title } = Typography;
 
@@ -33,7 +33,7 @@ const ListAllPage: React.FC = () => {
                 <Title level={3}>
                     All Cars
                 </Title>
-                <FilterComponent
+                <FilterSortComponent
                     onApplyFilter={onApplyFilter}
                 />
                 <p>long content</p>

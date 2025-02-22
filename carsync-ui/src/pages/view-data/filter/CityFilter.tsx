@@ -50,7 +50,7 @@ export function CityFilter(cityFilterProps: CityFilterProps) {
     }, [selectedCities])
 
     return <>
-        <Flex vertical gap='small'>
+        <Flex vertical gap='small' style={{ padding: 0 }}>
             <Input placeholder="Search" value={searchValue} allowClear onChange={onSearch} />
             <Flex wrap style={{ maxHeight: 200, maxWidth: 690, overflow: 'scroll' }}>
                 {isCityFilterEnabled && <Tag
