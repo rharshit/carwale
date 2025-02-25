@@ -88,7 +88,7 @@ public class AppRepositoryImpl implements AppRepository {
             criteria.add(Criteria.where("mileage").gte(carFilter.getMinMileage()));
         }
         if (carFilter.getMaxMileage() != null) {
-            criteria.add(Criteria.where("   mileage").lte(carFilter.getMaxMileage()));
+            criteria.add(Criteria.where("mileage").lte(carFilter.getMaxMileage()));
         }
         if (carFilter.getMinPower() != null) {
             criteria.add(Criteria.where("specs.enginePower").gte(carFilter.getMinPower()));
