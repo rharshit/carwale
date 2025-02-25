@@ -1,9 +1,11 @@
 import {
     DotChartOutlined,
     GroupOutlined,
+    LinkOutlined,
     UngroupOutlined,
 } from '@ant-design/icons';
 import { Flex, Radio, RadioChangeEvent, Table, TableColumnsType, Tooltip } from "antd";
+import { RenderedCell } from 'rc-table/lib/interface';
 import React, { useEffect, useState } from "react";
 import { CarModel } from "../common/Types";
 
@@ -46,23 +48,68 @@ export function AllCarsList(allCarListProps: AllCarListProps) {
         setListView(e.target.value);
     };
 
+    const defaultTextRenderer = (element: React.ReactNode): React.ReactNode | RenderedCell<TableCarData> => {
+        return element
+    }
+
+    const defaultRangeRenderer = (value: (number | null)[]): React.ReactNode | RenderedCell<TableCarData> => {
+        let text = ''
+        if (value == null) {
+            text = ''
+        } else if (value.length == 0) {
+            text = ''
+        } else {
+            if (value.length == 1) {
+                text = '' + (value[0] ?? '')
+            } else if (value.length == 2) {
+                if (value[0] == null) {
+                    if (value[1] == null) {
+                        text = ''
+                    } else {
+                        text = '' + (value[1] ?? '')
+                    }
+                } else {
+                    if (value[1] == null) {
+                        text = '' + (value[0] ?? '')
+                    } else {
+                        if (value[0] == value[1]) {
+                            text = '' + (value[0] ?? '')
+                        } else {
+                            text = value.join(' - ')
+                        }
+                    }
+                }
+            } else {
+                text = value.join(' - ')
+            }
+        }
+        return defaultTextRenderer(text);
+    }
+
+    //TODO: Add filter condition in this function
+    const filterCar = (car: CarModel): boolean => {
+        return true;
+    }
+
     function updateFilteredCars(allCars: CarModel[]) {
-        setFilteredCars(allCars.map(car => {
-            return {
-                key: car.id,
-                name: [car.make, car.model, car.variant].join(' '),
-                city: car.city,
-                make: car.make,
-                model: car.model,
-                variant: car.variant,
-                url: car.url,
-                year: [car.year, car.year],
-                price: [car.price, car.price],
-                power: [car.specs.enginePower, car.specs.enginePower],
-                torque: [car.specs.engineTorque, car.specs.engineTorque],
-                displacement: [car.specs.engineDisplacement, car.specs.engineDisplacement]
-            } as TableCarData
-        }))
+        setFilteredCars(allCars
+            .filter(car => filterCar(car))
+            .map(car => {
+                return {
+                    key: car.id,
+                    name: [car.make, car.model, car.variant].join(' '),
+                    city: car.city,
+                    make: car.make,
+                    model: car.model,
+                    variant: car.variant,
+                    url: car.url,
+                    year: [car.year, car.year],
+                    price: [car.price, car.price],
+                    power: [car.specs.enginePower, car.specs.enginePower],
+                    torque: [car.specs.engineTorque, car.specs.engineTorque],
+                    displacement: [car.specs.engineDisplacement, car.specs.engineDisplacement]
+                } as TableCarData
+            }))
     }
 
     function updateMinMax(group: TableCarData, car: TableCarData) {
@@ -159,13 +206,57 @@ export function AllCarsList(allCarListProps: AllCarListProps) {
     const columns: TableColumnsType<TableCarData> = [
         {
             title: 'Name',
-            dataIndex: 'name',
-            key: 'name'
+            key: 'name',
+            render: (value, record, index) => {
+                return <>
+                    {defaultTextRenderer(record.name)}
+                    {(
+                        record.url == null ? '' : <a href={record.url} target="_blank" rel="noopener noreferrer"> <LinkOutlined /></a>
+                    )}
+                </>
+            }
         },
         {
             title: 'City',
-            dataIndex: 'city',
-            key: 'city'
+            key: 'city',
+            render: (value, record, index) => {
+                return defaultTextRenderer(record.city ?? '')
+            }
+        },
+        {
+            title: 'Year',
+            key: 'year',
+            render: (value, record, index) => {
+                return defaultRangeRenderer(record.year)
+            }
+        },
+        {
+            title: 'Price',
+            key: 'price',
+            render: (value, record, index) => {
+                return defaultRangeRenderer(record.price)
+            }
+        },
+        {
+            title: 'Power',
+            key: 'power',
+            render: (value, record, index) => {
+                return defaultRangeRenderer(record.power)
+            }
+        },
+        {
+            title: 'Torque',
+            key: 'torque',
+            render: (value, record, index) => {
+                return defaultRangeRenderer(record.torque)
+            }
+        },
+        {
+            title: 'Displacement',
+            key: 'displacement',
+            render: (value, record, index) => {
+                return defaultRangeRenderer(record.displacement)
+            }
         },
     ]
 
