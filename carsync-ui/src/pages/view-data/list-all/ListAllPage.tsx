@@ -1,5 +1,5 @@
 import { Flex, Typography, theme } from 'antd';
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { post } from '../../../service/api';
 import { CarFilter, FilterSortComponent } from '../filter/FilterComponent';
 
@@ -11,24 +11,38 @@ const ListAllPage: React.FC = () => {
         token: { colorBgContainer },
     } = theme.useToken();
 
-    const [carFilter, setCarFilter] = useState<CarFilter>()
+    const [isApplyingFilter, setApplyingFilter] = useState<boolean>(false)
+    const [isFilterApplied, setFilterApplied] = useState<boolean>(false)
 
-    useEffect(() => {
-        fetchCars(carFilter)
-    }, [carFilter])
-
-    async function fetchCars(carFilter: CarFilter | undefined) {
+    async function fetchCars(carFilter: CarFilter, setApplyingFilter: React.Dispatch<React.SetStateAction<boolean>>, setFilterApplied: React.Dispatch<React.SetStateAction<boolean>>) {
         if (!carFilter) {
+            setApplyingFilter(false)
+            setFilterApplied(false)
             return;
         }
         console.log('Fetching cars', carFilter)
-        Promise.resolve(post('/car', carFilter).then(res => {
-            console.log('data', res)
-        }))
+        Promise.resolve(
+            post('/car', carFilter)
+                .then(res => {
+                    console.log('data', res)
+                    setFilterApplied(true)
+                })
+                .catch(e => {
+                    console.error('Error fetching list of cars', e)
+                    setFilterApplied(false)
+                })
+                .finally(() => {
+                    setApplyingFilter(false)
+                })
+        )
     }
 
-    const onApplyFilter = (carFilter: CarFilter) => {
-        setCarFilter(carFilter)
+    const onApplyFilter = (
+        carFilter: CarFilter,
+        setApplyingFilter: React.Dispatch<React.SetStateAction<boolean>>,
+        setFilterApplied: React.Dispatch<React.SetStateAction<boolean>>
+    ) => {
+        fetchCars(carFilter, setApplyingFilter, setFilterApplied)
     }
 
     return (
@@ -47,6 +61,10 @@ const ListAllPage: React.FC = () => {
                     </Title>
                     <FilterSortComponent
                         onApplyFilter={onApplyFilter}
+                        isApplyingFilter={isApplyingFilter}
+                        setApplyingFilter={setApplyingFilter}
+                        isFilterApplied={isFilterApplied}
+                        setFilterApplied={setFilterApplied}
                     />
                 </Flex>
                 <p>long content</p>

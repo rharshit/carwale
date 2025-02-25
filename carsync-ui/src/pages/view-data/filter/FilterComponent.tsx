@@ -12,11 +12,25 @@ import { SortOptions } from "./SortOptions";
 const { Text } = Typography;
 
 type FilterProps = {
-    onApplyFilter: (carFilter: CarFilter) => void
+    onApplyFilter: (
+        carFilter: CarFilter,
+        setApplyingFilter: React.Dispatch<React.SetStateAction<boolean>>,
+        setFilterApplied: React.Dispatch<React.SetStateAction<boolean>>
+    ) => void,
+    isApplyingFilter: boolean,
+    setApplyingFilter: React.Dispatch<React.SetStateAction<boolean>>,
+    isFilterApplied: boolean,
+    setFilterApplied: React.Dispatch<React.SetStateAction<boolean>>
 }
 
 export function FilterSortComponent(filterProps: FilterProps) {
-    const { onApplyFilter } = filterProps
+    const {
+        onApplyFilter,
+        isApplyingFilter,
+        setApplyingFilter,
+        isFilterApplied,
+        setFilterApplied
+    } = filterProps
 
     const [selectedFilter, setSelectedFilter] = useState<string | number>('Sort');
     const [carFilterValues, setCarFilterValues] = useState<CarFilterResponse>();
@@ -67,7 +81,6 @@ export function FilterSortComponent(filterProps: FilterProps) {
     const [maxWheelbase, setMaxWheelbase] = useState<number>(0);
 
     const [isAnyFilterEnabled, setAnyFiltereEnabled] = useState<boolean>(false)
-    const [isApplyEnabled, setIsApplyEnabled] = useState<boolean>(true)
 
     const filterOptions: SegmentedOptions<valueType> = [
         {
@@ -181,7 +194,7 @@ export function FilterSortComponent(filterProps: FilterProps) {
     ])
 
     useEffect(() => {
-        setIsApplyEnabled(true)
+        setFilterApplied(false)
     }, [
         isCityFilterEnabled,
         isCarFilterEnabled,
@@ -326,8 +339,8 @@ export function FilterSortComponent(filterProps: FilterProps) {
             filter.minWheelbase = minWheelbase;
             filter.maxWheelbase = maxWheelbase;
         }
-        onApplyFilter(filter);
-        setIsApplyEnabled(false)
+        setApplyingFilter(true)
+        onApplyFilter(filter, setApplyingFilter, setFilterApplied);
     }
 
     return (
@@ -502,7 +515,7 @@ export function FilterSortComponent(filterProps: FilterProps) {
                         </Flex>
                         <Flex gap='small'>
                             {isAnyFilterEnabled && <Button onClick={() => disableAllFilters()}>Reset filters</Button>}
-                            <Button type="primary" disabled={!isApplyEnabled} onClick={() => createFilter()}>Apply</Button>
+                            <Button type="primary" disabled={isFilterApplied} loading={isApplyingFilter} onClick={() => createFilter()}>Apply</Button>
                         </Flex>
                     </Flex>
                 </Flex>
