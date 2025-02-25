@@ -5,6 +5,7 @@ import {
     UngroupOutlined,
 } from '@ant-design/icons';
 import { Flex, Radio, RadioChangeEvent, Table, TableColumnsType, Tooltip } from "antd";
+import { SortOrder } from 'antd/es/table/interface';
 import { RenderedCell } from 'rc-table/lib/interface';
 import React, { useEffect, useState } from "react";
 import { CarModel } from "../common/Types";
@@ -84,6 +85,70 @@ export function AllCarsList(allCarListProps: AllCarListProps) {
             }
         }
         return defaultTextRenderer(text);
+    }
+
+    const defaultTextSorter = (a: string | null | undefined, b: string | null | undefined): number => {
+        if (a == null) {
+            return -1
+        } else if (b == null) {
+            return 1
+        } else {
+            return a.localeCompare(b);
+        }
+    }
+
+    const getMinValue = (num: (number | null)[]): number | null => {
+        if (num.length == 0) {
+            return null;
+        } else if (num.length == 1) {
+            return num[0];
+        } else if (num.length == 2) {
+            return num[0] == null ? num[1] : num[0]
+        } else {
+            throw new Error("Cant get min value");
+        }
+    }
+    const getMaxValue = (num: (number | null)[]): number | null => {
+        if (num.length == 0) {
+            return null;
+        } else if (num.length == 1) {
+            return num[0];
+        } else if (num.length == 2) {
+            return num[1] == null ? num[0] : num[1]
+        } else {
+            throw new Error("Cant get max value");
+        }
+    }
+
+    const defaultRangeSorter = (a: (number | null)[], b: (number | null)[], sortOrder: SortOrder | undefined): number => {
+        if (sortOrder == null) {
+            return 0;
+        } else {
+            if (a == null) {
+                return -1
+            } else if (b == null) {
+                return 1
+            } else {
+                const [aMin, aMax, bMin, bMax] = [getMinValue(a), getMaxValue(a), getMinValue(b), getMaxValue(b)]
+                if (sortOrder == 'descend') {
+                    if (aMax == null) {
+                        return bMax == null ? 0 : -1;
+                    } else if (bMax == null) {
+                        return 1;
+                    } else {
+                        return aMax - bMax;
+                    }
+                } else {
+                    if (aMin == null) {
+                        return bMin == null ? 0 : 1;
+                    } else if (bMin == null) {
+                        return -1;
+                    } else {
+                        return aMin - bMin;
+                    }
+                }
+            }
+        }
     }
 
     //TODO: Add filter condition in this function
@@ -214,7 +279,8 @@ export function AllCarsList(allCarListProps: AllCarListProps) {
                         record.url == null ? '' : <a href={record.url} target="_blank" rel="noopener noreferrer"> <LinkOutlined /></a>
                     )}
                 </>
-            }
+            },
+            sorter: (a, b) => defaultTextSorter(a.name, b.name)
         },
         {
             title: 'City',
@@ -228,35 +294,40 @@ export function AllCarsList(allCarListProps: AllCarListProps) {
             key: 'year',
             render: (value, record, index) => {
                 return defaultRangeRenderer(record.year)
-            }
+            },
+            sorter: (a, b, sortOrder) => defaultRangeSorter(a.year, b.year, sortOrder)
         },
         {
             title: 'Price',
             key: 'price',
             render: (value, record, index) => {
                 return defaultRangeRenderer(record.price)
-            }
+            },
+            sorter: (a, b, sortOrder) => defaultRangeSorter(a.price, b.price, sortOrder)
         },
         {
             title: 'Power',
             key: 'power',
             render: (value, record, index) => {
                 return defaultRangeRenderer(record.power)
-            }
+            },
+            sorter: (a, b, sortOrder) => defaultRangeSorter(a.power, b.power, sortOrder)
         },
         {
             title: 'Torque',
             key: 'torque',
             render: (value, record, index) => {
                 return defaultRangeRenderer(record.torque)
-            }
+            },
+            sorter: (a, b, sortOrder) => defaultRangeSorter(a.torque, b.torque, sortOrder)
         },
         {
             title: 'Displacement',
             key: 'displacement',
             render: (value, record, index) => {
                 return defaultRangeRenderer(record.displacement)
-            }
+            },
+            sorter: (a, b, sortOrder) => defaultRangeSorter(a.displacement, b.displacement, sortOrder)
         },
     ]
 
