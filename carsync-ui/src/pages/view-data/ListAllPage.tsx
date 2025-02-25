@@ -1,4 +1,4 @@
-import { Flex, Typography } from 'antd';
+import { Flex, Typography, theme } from 'antd';
 import React, { useEffect, useState } from 'react';
 import { post } from '../../service/api';
 import { CarFilter, FilterSortComponent } from './filter/FilterComponent';
@@ -6,6 +6,10 @@ import { CarFilter, FilterSortComponent } from './filter/FilterComponent';
 const { Title } = Typography;
 
 const ListAllPage: React.FC = () => {
+
+    const {
+        token: { colorBgContainer },
+    } = theme.useToken();
 
     const [carFilter, setCarFilter] = useState<CarFilter>()
 
@@ -30,12 +34,21 @@ const ListAllPage: React.FC = () => {
     return (
         <>
             <Flex vertical>
-                <Title level={3}>
-                    All Cars
-                </Title>
-                <FilterSortComponent
-                    onApplyFilter={onApplyFilter}
-                />
+                <Flex vertical style={{
+                    position: 'sticky',
+                    top: 0,
+                    zIndex: 1,
+                    width: '100%',
+                    display: 'flex',
+                    background: colorBgContainer,
+                }}>
+                    <Title level={3}>
+                        All Cars
+                    </Title>
+                    <FilterSortComponent
+                        onApplyFilter={onApplyFilter}
+                    />
+                </Flex>
                 <p>long content</p>
                 {
                     // indicates very long content
