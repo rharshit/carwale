@@ -1,9 +1,20 @@
 import { Flex, Typography, theme } from 'antd';
 import React, { useState } from 'react';
 import { post } from '../../../service/api';
+import { CarModel } from '../common/Types';
 import { CarFilter, FilterSortComponent } from '../filter/FilterComponent';
+import AllCarsList from './AllCarsList';
 
 const { Title } = Typography;
+
+export interface AllCarsResponse {
+    success: boolean
+    error: string
+    total: number
+    length: number
+    cars: CarModel[]
+    loadMore: boolean
+}
 
 const ListAllPage: React.FC = () => {
 
@@ -14,17 +25,19 @@ const ListAllPage: React.FC = () => {
     const [isApplyingFilter, setApplyingFilter] = useState<boolean>(false)
     const [isFilterApplied, setFilterApplied] = useState<boolean>(false)
 
+    const [allCars, setAllCars] = useState<CarModel[]>([])
+
     async function fetchCars(carFilter: CarFilter, setApplyingFilter: React.Dispatch<React.SetStateAction<boolean>>, setFilterApplied: React.Dispatch<React.SetStateAction<boolean>>) {
         if (!carFilter) {
             setApplyingFilter(false)
             setFilterApplied(false)
             return;
         }
-        console.log('Fetching cars', carFilter)
         Promise.resolve(
             post('/car', carFilter)
                 .then(res => {
-                    console.log('data', res)
+                    const allCarsResponse: AllCarsResponse = res as AllCarsResponse;
+                    setAllCars(allCarsResponse.cars ?? [])
                     setFilterApplied(true)
                 })
                 .catch(e => {
@@ -67,17 +80,10 @@ const ListAllPage: React.FC = () => {
                         setFilterApplied={setFilterApplied}
                     />
                 </Flex>
-                <p>long content</p>
-                {
-                    // indicates very long content
-                    Array.from({ length: 100 }, (_, index) => (
-                        <React.Fragment key={index}>
-                            {index % 20 === 0 && index ? 'more' : '...'}
-                            <br />
-                        </React.Fragment>
-                    ))
-                }
-                <p>end</p>
+                <AllCarsList
+                    allCars={allCars}
+                    loading={isApplyingFilter}
+                />
             </Flex>
         </>
     );
