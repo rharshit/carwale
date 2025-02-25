@@ -28,6 +28,10 @@ type TableCarData = {
     power: (number | null)[],
     torque: (number | null)[],
     displacement: (number | null)[],
+    length: (number | null)[],
+    width: (number | null)[],
+    height: (number | null)[],
+    wheelbase: (number | null)[],
     children?: TableCarData[]
 }
 
@@ -172,7 +176,11 @@ export function AllCarsList(allCarListProps: AllCarListProps) {
                     price: [car.price, car.price],
                     power: [car.specs.enginePower, car.specs.enginePower],
                     torque: [car.specs.engineTorque, car.specs.engineTorque],
-                    displacement: [car.specs.engineDisplacement, car.specs.engineDisplacement]
+                    displacement: [car.specs.engineDisplacement, car.specs.engineDisplacement],
+                    length: [car.specs.length, car.specs.length],
+                    width: [car.specs.width, car.specs.width],
+                    height: [car.specs.height, car.specs.height],
+                    wheelbase: [car.specs.wheelbase, car.specs.wheelbase]
                 } as TableCarData
             }))
     }
@@ -192,6 +200,10 @@ export function AllCarsList(allCarListProps: AllCarListProps) {
         group.power = computeNewMinMax(group.power, car.power)
         group.torque = computeNewMinMax(group.torque, car.torque)
         group.displacement = computeNewMinMax(group.displacement, car.displacement)
+        group.length = computeNewMinMax(group.length, car.length)
+        group.width = computeNewMinMax(group.width, car.width)
+        group.height = computeNewMinMax(group.height, car.height)
+        group.wheelbase = computeNewMinMax(group.wheelbase, car.wheelbase)
     }
 
     function updateTreeData(filteredCars: TableCarData[]) {
@@ -208,6 +220,10 @@ export function AllCarsList(allCarListProps: AllCarListProps) {
                     power: car.power,
                     torque: car.torque,
                     displacement: car.displacement,
+                    length: car.length,
+                    width: car.width,
+                    height: car.height,
+                    wheelbase: car.wheelbase,
                     children: []
                 } as TableCarData;
                 makes.push(make)
@@ -227,6 +243,10 @@ export function AllCarsList(allCarListProps: AllCarListProps) {
                     power: car.power,
                     torque: car.torque,
                     displacement: car.displacement,
+                    length: car.length,
+                    width: car.width,
+                    height: car.height,
+                    wheelbase: car.wheelbase,
                     children: []
                 } as TableCarData;
                 models.push(model)
@@ -248,6 +268,10 @@ export function AllCarsList(allCarListProps: AllCarListProps) {
                     power: car.power,
                     torque: car.torque,
                     displacement: car.displacement,
+                    length: car.length,
+                    width: car.width,
+                    height: car.height,
+                    wheelbase: car.wheelbase,
                     children: []
                 } as TableCarData;
                 variants.push(variant)
@@ -328,6 +352,38 @@ export function AllCarsList(allCarListProps: AllCarListProps) {
                 return defaultRangeRenderer(record.displacement)
             },
             sorter: (a, b, sortOrder) => defaultRangeSorter(a.displacement, b.displacement, sortOrder)
+        },
+        {
+            title: 'Length',
+            key: 'length',
+            render: (value, record, index) => {
+                return defaultRangeRenderer(record.length)
+            },
+            sorter: (a, b, sortOrder) => defaultRangeSorter(a.length, b.length, sortOrder)
+        },
+        {
+            title: 'Width',
+            key: 'width',
+            render: (value, record, index) => {
+                return defaultRangeRenderer(record.width)
+            },
+            sorter: (a, b, sortOrder) => defaultRangeSorter(a.width, b.width, sortOrder)
+        },
+        {
+            title: 'Height',
+            key: 'height',
+            render: (value, record, index) => {
+                return defaultRangeRenderer(record.height)
+            },
+            sorter: (a, b, sortOrder) => defaultRangeSorter(a.height, b.height, sortOrder)
+        },
+        {
+            title: 'Wheelbase',
+            key: 'wheelbase',
+            render: (value, record, index) => {
+                return defaultRangeRenderer(record.wheelbase)
+            },
+            sorter: (a, b, sortOrder) => defaultRangeSorter(a.wheelbase, b.wheelbase, sortOrder)
         },
     ]
 
