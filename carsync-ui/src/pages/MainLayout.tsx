@@ -13,9 +13,9 @@ import { Route, Routes, useNavigate } from 'react-router-dom';
 import carSyncLogo from '../assets/CarSync.svg';
 import CarWalePage from './fetch/CarWalePage';
 import HomePage from './home/HomePage';
-import ListAllPage from './view-data/ListAllPage';
-import ShowSpecsPage from './view-data/ShowSpecsPage';
-import ViewGraphPage from './view-data/ViewGraphPage';
+import ListAllPage from './view-data/list-all/ListAllPage';
+import ShowSpecsPage from './view-data/show-specs/ShowSpecsPage';
+import ViewGraphPage from './view-data/view-graph/ViewGraphPage';
 
 
 const { Title } = Typography;
