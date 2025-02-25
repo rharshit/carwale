@@ -296,7 +296,7 @@ export function AllCarsList(allCarListProps: AllCarListProps) {
         {
             title: 'Name',
             key: 'name',
-            render: (value, record, index) => {
+            render: (value, record) => {
                 return <>
                     {defaultTextRenderer(record.name)}
                     {(
@@ -309,14 +309,14 @@ export function AllCarsList(allCarListProps: AllCarListProps) {
         {
             title: 'City',
             key: 'city',
-            render: (value, record, index) => {
+            render: (value, record) => {
                 return defaultTextRenderer(record.city ?? '')
             }
         },
         {
             title: 'Year',
             key: 'year',
-            render: (value, record, index) => {
+            render: (value, record) => {
                 return defaultRangeRenderer(record.year)
             },
             sorter: (a, b, sortOrder) => defaultRangeSorter(a.year, b.year, sortOrder)
@@ -324,7 +324,7 @@ export function AllCarsList(allCarListProps: AllCarListProps) {
         {
             title: 'Price',
             key: 'price',
-            render: (value, record, index) => {
+            render: (value, record) => {
                 return defaultRangeRenderer(record.price)
             },
             sorter: (a, b, sortOrder) => defaultRangeSorter(a.price, b.price, sortOrder)
@@ -332,7 +332,7 @@ export function AllCarsList(allCarListProps: AllCarListProps) {
         {
             title: 'Power',
             key: 'power',
-            render: (value, record, index) => {
+            render: (value, record) => {
                 return defaultRangeRenderer(record.power)
             },
             sorter: (a, b, sortOrder) => defaultRangeSorter(a.power, b.power, sortOrder)
@@ -340,7 +340,7 @@ export function AllCarsList(allCarListProps: AllCarListProps) {
         {
             title: 'Torque',
             key: 'torque',
-            render: (value, record, index) => {
+            render: (value, record) => {
                 return defaultRangeRenderer(record.torque)
             },
             sorter: (a, b, sortOrder) => defaultRangeSorter(a.torque, b.torque, sortOrder)
@@ -348,7 +348,7 @@ export function AllCarsList(allCarListProps: AllCarListProps) {
         {
             title: 'Displacement',
             key: 'displacement',
-            render: (value, record, index) => {
+            render: (value, record) => {
                 return defaultRangeRenderer(record.displacement)
             },
             sorter: (a, b, sortOrder) => defaultRangeSorter(a.displacement, b.displacement, sortOrder)
@@ -356,7 +356,7 @@ export function AllCarsList(allCarListProps: AllCarListProps) {
         {
             title: 'Length',
             key: 'length',
-            render: (value, record, index) => {
+            render: (value, record) => {
                 return defaultRangeRenderer(record.length)
             },
             sorter: (a, b, sortOrder) => defaultRangeSorter(a.length, b.length, sortOrder)
@@ -364,7 +364,7 @@ export function AllCarsList(allCarListProps: AllCarListProps) {
         {
             title: 'Width',
             key: 'width',
-            render: (value, record, index) => {
+            render: (value, record) => {
                 return defaultRangeRenderer(record.width)
             },
             sorter: (a, b, sortOrder) => defaultRangeSorter(a.width, b.width, sortOrder)
@@ -372,7 +372,7 @@ export function AllCarsList(allCarListProps: AllCarListProps) {
         {
             title: 'Height',
             key: 'height',
-            render: (value, record, index) => {
+            render: (value, record) => {
                 return defaultRangeRenderer(record.height)
             },
             sorter: (a, b, sortOrder) => defaultRangeSorter(a.height, b.height, sortOrder)
@@ -380,7 +380,7 @@ export function AllCarsList(allCarListProps: AllCarListProps) {
         {
             title: 'Wheelbase',
             key: 'wheelbase',
-            render: (value, record, index) => {
+            render: (value, record) => {
                 return defaultRangeRenderer(record.wheelbase)
             },
             sorter: (a, b, sortOrder) => defaultRangeSorter(a.wheelbase, b.wheelbase, sortOrder)
