@@ -104,6 +104,7 @@ public class CarWaleService extends ClientService<CarWaleCarModel> {
         return carModelRepository.findCarsWithoutCity();
     }
 
+    //TODO: Implement dynamic limit
     private List<Integer> getCityList() {
         CityListResponse cityListResponse = getRestClient().post().uri("/api/used-search/filters/")
                 .contentType(APPLICATION_JSON).body("{}")
@@ -111,7 +112,7 @@ public class CarWaleService extends ClientService<CarWaleCarModel> {
         if (cityListResponse == null || cityListResponse.city == null) {
             return new ArrayList<>();
         }
-        return cityListResponse.city.stream().map(city -> city.cityId).distinct().toList();
+        return cityListResponse.city.stream().limit(25).map(city -> city.cityId).distinct().toList();
     }
 
     private void fetchCarsForCity(int city, ExecutorService dbExecutor, ExecutorService fetchExecutor) {
