@@ -4,7 +4,7 @@ import {
     LinkOutlined,
     UngroupOutlined,
 } from '@ant-design/icons';
-import { ConfigProvider, Flex, Input, Radio, RadioChangeEvent, Table, TableColumnsType, Tag, Tooltip, theme } from "antd";
+import { ConfigProvider, Flex, Input, Radio, RadioChangeEvent, Table, TableColumnsType, Tag, theme, Tooltip, Typography } from "antd";
 import { SortOrder } from 'antd/es/table/interface';
 import { RenderedCell } from 'rc-table/lib/interface';
 import React, { Key, useEffect, useState } from "react";
@@ -42,6 +42,7 @@ export function AllCarsList(allCarListProps: AllCarListProps) {
         loading
     } = allCarListProps
 
+    const { Text } = Typography;
 
     const {
         token: { colorBgContainer, colorSuccessBg, colorErrorBg },
@@ -61,8 +62,8 @@ export function AllCarsList(allCarListProps: AllCarListProps) {
         setListView(e.target.value);
     };
 
-    const defaultTextRenderer = (element: React.ReactNode): React.ReactNode | RenderedCell<TableCarData> => {
-        return element
+    const defaultTextRenderer = (element: React.ReactNode, disabled?: boolean = false): React.ReactNode | RenderedCell<TableCarData> => {
+        return <Text disabled={disabled}>{element}</Text>
     }
 
     const defaultRangeRenderer = (value: (number | null)[]): React.ReactNode | RenderedCell<TableCarData> => {
@@ -320,11 +321,30 @@ export function AllCarsList(allCarListProps: AllCarListProps) {
             key: 'name',
             fixed: true,
             render: (value, record) => {
+                function getNumCars(record: TableCarData) {
+                    const children: TableCarData[] | undefined = record.children;
+                    if (children == null) {
+                        return 1
+                    }
+                    let total = 0
+                    children.forEach(child => {
+                        total += getNumCars(child);
+                    });
+                    return total;
+                }
+                function groupDetails(record: TableCarData) {
+                    if (isList() || record.children == null) {
+                        return null;
+                    }
+                    const total = getNumCars(record)
+                    return defaultTextRenderer(` (${total})`, true);
+                }
                 return <>
                     {(
                         record.url == null ? '' : <a href={record.url} target="_blank" rel="noopener noreferrer"><LinkOutlined /> </a>
                     )}
                     {defaultTextRenderer(record.name)}
+                    {groupDetails(record)}
                 </>
             },
             sorter: (a, b, sortOrder) => defaultTextSorter(a.name, b.name, sortOrder),
@@ -450,7 +470,7 @@ export function AllCarsList(allCarListProps: AllCarListProps) {
         <Flex vertical>
             <Flex align='center' justify='space-between' style={{ padding: '8px 0 8px 0' }}>
                 <Input
-                    placeholder='Search'
+                    placeholder={`Search ${allCars.length} cars`}
                     style={{ width: '25%' }}
                     value={nameFilter}
                     onChange={e => { setNameFilter(e.target.value) }} />
