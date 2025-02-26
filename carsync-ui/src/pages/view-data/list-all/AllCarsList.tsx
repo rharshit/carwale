@@ -4,7 +4,7 @@ import {
     LinkOutlined,
     UngroupOutlined,
 } from '@ant-design/icons';
-import { Flex, Radio, RadioChangeEvent, Table, TableColumnsType, Tooltip } from "antd";
+import { Flex, Input, Radio, RadioChangeEvent, Table, TableColumnsType, Tooltip } from "antd";
 import { SortOrder } from 'antd/es/table/interface';
 import { RenderedCell } from 'rc-table/lib/interface';
 import React, { useEffect, useState } from "react";
@@ -44,6 +44,7 @@ export function AllCarsList(allCarListProps: AllCarListProps) {
     const [listView, setListView] = useState<string>('group')
     const [filteredCars, setFilteredCars] = useState<TableCarData[]>([])
     const [filteredCarsTree, setFilteredCarsTree] = useState<TableCarData[]>([])
+    const [nameFilter, setNameFilter] = useState<string>('')
 
     const isList = (): boolean => {
         return listView == 'list';
@@ -155,8 +156,15 @@ export function AllCarsList(allCarListProps: AllCarListProps) {
         }
     }
 
-    //TODO: Add filter condition in this function
     const filterCar = (car: CarModel): boolean => {
+        if (nameFilter.trim() != '') {
+            if (!car.make.toLowerCase().includes(nameFilter.toLowerCase().trim()) &&
+                !car.model.toLowerCase().includes(nameFilter.toLowerCase().trim()) &&
+                !car.variant.toLowerCase().includes(nameFilter.toLowerCase().trim())
+            ) {
+                return false;
+            }
+        }
         return true;
     }
 
@@ -290,28 +298,33 @@ export function AllCarsList(allCarListProps: AllCarListProps) {
 
     useEffect(() => {
         updateFilteredCars(allCars)
-    }, [allCars])
+    }, [allCars, nameFilter])
 
     const columns: TableColumnsType<TableCarData> = [
         {
             title: 'Name',
             key: 'name',
+            fixed: 'left',
             render: (value, record) => {
                 return <>
-                    {defaultTextRenderer(record.name)}
                     {(
-                        record.url == null ? '' : <a href={record.url} target="_blank" rel="noopener noreferrer"> <LinkOutlined /></a>
+                        record.url == null ? '' : <a href={record.url} target="_blank" rel="noopener noreferrer"><LinkOutlined /> </a>
                     )}
+                    {defaultTextRenderer(record.name)}
                 </>
             },
-            sorter: (a, b) => defaultTextSorter(a.name, b.name)
+            sorter: (a, b) => defaultTextSorter(a.name, b.name),
+            defaultSortOrder: 'ascend',
+            width: 420,
+            ellipsis: true
         },
         {
             title: 'City',
             key: 'city',
             render: (value, record) => {
                 return defaultTextRenderer(record.city ?? '')
-            }
+            },
+            width: 150
         },
         {
             title: 'Year',
@@ -319,7 +332,8 @@ export function AllCarsList(allCarListProps: AllCarListProps) {
             render: (value, record) => {
                 return defaultRangeRenderer(record.year)
             },
-            sorter: (a, b, sortOrder) => defaultRangeSorter(a.year, b.year, sortOrder)
+            sorter: (a, b, sortOrder) => defaultRangeSorter(a.year, b.year, sortOrder),
+            width: 120
         },
         {
             title: 'Price',
@@ -327,7 +341,8 @@ export function AllCarsList(allCarListProps: AllCarListProps) {
             render: (value, record) => {
                 return defaultRangeRenderer(record.price)
             },
-            sorter: (a, b, sortOrder) => defaultRangeSorter(a.price, b.price, sortOrder)
+            sorter: (a, b, sortOrder) => defaultRangeSorter(a.price, b.price, sortOrder),
+            width: 200
         },
         {
             title: 'Power',
@@ -335,7 +350,8 @@ export function AllCarsList(allCarListProps: AllCarListProps) {
             render: (value, record) => {
                 return defaultRangeRenderer(record.power)
             },
-            sorter: (a, b, sortOrder) => defaultRangeSorter(a.power, b.power, sortOrder)
+            sorter: (a, b, sortOrder) => defaultRangeSorter(a.power, b.power, sortOrder),
+            width: 120
         },
         {
             title: 'Torque',
@@ -343,7 +359,8 @@ export function AllCarsList(allCarListProps: AllCarListProps) {
             render: (value, record) => {
                 return defaultRangeRenderer(record.torque)
             },
-            sorter: (a, b, sortOrder) => defaultRangeSorter(a.torque, b.torque, sortOrder)
+            sorter: (a, b, sortOrder) => defaultRangeSorter(a.torque, b.torque, sortOrder),
+            width: 120
         },
         {
             title: 'Displacement',
@@ -351,7 +368,8 @@ export function AllCarsList(allCarListProps: AllCarListProps) {
             render: (value, record) => {
                 return defaultRangeRenderer(record.displacement)
             },
-            sorter: (a, b, sortOrder) => defaultRangeSorter(a.displacement, b.displacement, sortOrder)
+            sorter: (a, b, sortOrder) => defaultRangeSorter(a.displacement, b.displacement, sortOrder),
+            width: 120
         },
         {
             title: 'Length',
@@ -359,7 +377,8 @@ export function AllCarsList(allCarListProps: AllCarListProps) {
             render: (value, record) => {
                 return defaultRangeRenderer(record.length)
             },
-            sorter: (a, b, sortOrder) => defaultRangeSorter(a.length, b.length, sortOrder)
+            sorter: (a, b, sortOrder) => defaultRangeSorter(a.length, b.length, sortOrder),
+            width: 120
         },
         {
             title: 'Width',
@@ -367,7 +386,8 @@ export function AllCarsList(allCarListProps: AllCarListProps) {
             render: (value, record) => {
                 return defaultRangeRenderer(record.width)
             },
-            sorter: (a, b, sortOrder) => defaultRangeSorter(a.width, b.width, sortOrder)
+            sorter: (a, b, sortOrder) => defaultRangeSorter(a.width, b.width, sortOrder),
+            width: 120
         },
         {
             title: 'Height',
@@ -375,7 +395,8 @@ export function AllCarsList(allCarListProps: AllCarListProps) {
             render: (value, record) => {
                 return defaultRangeRenderer(record.height)
             },
-            sorter: (a, b, sortOrder) => defaultRangeSorter(a.height, b.height, sortOrder)
+            sorter: (a, b, sortOrder) => defaultRangeSorter(a.height, b.height, sortOrder),
+            width: 120
         },
         {
             title: 'Wheelbase',
@@ -383,45 +404,58 @@ export function AllCarsList(allCarListProps: AllCarListProps) {
             render: (value, record) => {
                 return defaultRangeRenderer(record.wheelbase)
             },
-            sorter: (a, b, sortOrder) => defaultRangeSorter(a.wheelbase, b.wheelbase, sortOrder)
+            sorter: (a, b, sortOrder) => defaultRangeSorter(a.wheelbase, b.wheelbase, sortOrder),
+            width: 120
         },
     ]
 
     return <>
         <Flex vertical>
-            <Radio.Group
-                onChange={onChangeListView}
-                value={listView}
-                optionType="button"
-                options={[
-                    {
-                        value: 'list',
-                        label: (<Tooltip title='List'>
-                            <UngroupOutlined style={{ fontSize: 18 }} />
-                        </Tooltip>
-                        ),
-                    },
-                    {
-                        value: 'group',
-                        label: (<Tooltip title='Group'>
-                            <GroupOutlined style={{ fontSize: 18 }} />
-                        </Tooltip>
+            <Flex align='center' justify='space-between' style={{ padding: '8px 0 8px 0' }}>
+                <Input
+                    placeholder='Search'
+                    style={{ width: '25%' }}
+                    value={nameFilter}
+                    onChange={e => { setNameFilter(e.target.value) }} />
+                <Radio.Group
+                    onChange={onChangeListView}
+                    value={listView}
+                    optionType="button"
+                    options={[
+                        {
+                            value: 'list',
+                            label: (<Tooltip title='List'>
+                                <UngroupOutlined style={{ fontSize: 18 }} />
+                            </Tooltip>
+                            ),
+                        },
+                        {
+                            value: 'group',
+                            label: (<Tooltip title='Group'>
+                                <GroupOutlined style={{ fontSize: 18 }} />
+                            </Tooltip>
 
-                        ),
-                    },
-                    {
-                        value: 'graph',
-                        label: (<Tooltip title='Graph'>
-                            <DotChartOutlined style={{ fontSize: 18 }} />
-                        </Tooltip>
-                        ),
-                    }
-                ]}
-            />
+                            ),
+                        },
+                        {
+                            value: 'graph',
+                            label: (<Tooltip title='Graph'>
+                                <DotChartOutlined style={{ fontSize: 18 }} />
+                            </Tooltip>
+                            ),
+                        }
+                    ]}
+                />
+            </Flex>
+
             <Table<TableCarData>
                 columns={columns}
                 dataSource={isList() ? filteredCars : filteredCarsTree}
                 loading={loading}
+                virtual
+                scroll={{ x: 2000, y: 400 }}
+                showSorterTooltip={false}
+                pagination={false}
             />
         </Flex>
     </>
