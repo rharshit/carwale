@@ -62,7 +62,7 @@ export function AllCarsList(allCarListProps: AllCarListProps) {
         setListView(e.target.value);
     };
 
-    const defaultTextRenderer = (element: React.ReactNode, disabled?: boolean = false): React.ReactNode | RenderedCell<TableCarData> => {
+    const defaultTextRenderer = (element: React.ReactNode, disabled: boolean = false): React.ReactNode | RenderedCell<TableCarData> => {
         return <Text disabled={disabled}>{element}</Text>
     }
 
