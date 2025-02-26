@@ -1,10 +1,11 @@
 import {
     DotChartOutlined,
+    EyeOutlined,
     GroupOutlined,
     LinkOutlined,
     UngroupOutlined,
 } from '@ant-design/icons';
-import { ConfigProvider, Flex, Input, Radio, RadioChangeEvent, Table, TableColumnsType, Tag, theme, Tooltip, Typography } from "antd";
+import { Button, ConfigProvider, Flex, Image, Input, Popover, Radio, RadioChangeEvent, Table, TableColumnsType, Tag, theme, Tooltip, Typography } from "antd";
 import { SortOrder } from 'antd/es/table/interface';
 import { RenderedCell } from 'rc-table/lib/interface';
 import React, { Key, useEffect, useState } from "react";
@@ -23,6 +24,7 @@ type TableCarData = {
     model?: string,
     variant?: string,
     url?: string,
+    imageUrls?: string[],
     year: (number | null)[],
     price: (number | null)[],
     mileage: (number | null)[],
@@ -194,6 +196,7 @@ export function AllCarsList(allCarListProps: AllCarListProps) {
                     model: car.model,
                     variant: car.variant,
                     url: car.url,
+                    imageUrls: car.imageUrls,
                     year: [car.year, car.year],
                     price: [car.price, car.price],
                     mileage: [car.mileage, car.mileage],
@@ -343,10 +346,32 @@ export function AllCarsList(allCarListProps: AllCarListProps) {
                     const total = getNumCars(record)
                     return defaultTextRenderer(` (${total})`, true);
                 }
+                function imagePanel(images: string[]) {
+                    return <Image.PreviewGroup
+                        preview={{
+                            onChange: (current, prev) => console.log(`current index: ${current}, prev index: ${prev}`),
+                        }}
+                    >
+                        {images.map(image => <Image width={100} src={image} fallback='Error' />)}
+                    </Image.PreviewGroup>
+                }
+                function imagesPreview(images: string[]) {
+                    if (images.length == 0) {
+                        return null
+                    }
+                    return <>
+                        <Popover content={imagePanel(images)} trigger="click">
+                            <Button type='link' icon={<EyeOutlined />} />
+                        </Popover>
+                        {' '}
+                    </>
+                }
+
                 return <>
                     {(
                         record.url == null ? '' : <a href={record.url} target="_blank" rel="noopener noreferrer"><LinkOutlined /> </a>
                     )}
+                    {imagesPreview(record.imageUrls ?? [])}
                     {defaultTextRenderer(record.name)}
                     {groupDetails(record)}
                 </>

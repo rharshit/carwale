@@ -11,6 +11,7 @@ export interface CarModel {
     price: number
     mileage: number
     url: string
+    imageUrls: string[]
     specs: Specs
 }
 
