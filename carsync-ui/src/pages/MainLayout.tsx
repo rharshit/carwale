@@ -2,12 +2,19 @@ import {
     AppstoreOutlined,
     BarsOutlined,
     CarOutlined,
+    CheckCircleOutlined,
+    CheckSquareOutlined,
+    CompressOutlined,
     DashboardOutlined,
     DotChartOutlined,
+    ExpandOutlined,
     FileSyncOutlined,
-    HomeOutlined
+    FormatPainterOutlined,
+    HomeOutlined,
+    MoonOutlined,
+    SunOutlined
 } from '@ant-design/icons';
-import { ConfigProvider, Flex, Layout, Menu, MenuProps, theme, Typography } from 'antd';
+import { ConfigProvider, Flex, FloatButton, Layout, Menu, MenuProps, theme, Typography } from 'antd';
 import React, { useEffect } from 'react';
 import { Route, Routes, useNavigate } from 'react-router-dom';
 import carSyncLogo from '../assets/CarSync.svg';
@@ -22,7 +29,17 @@ const { Title } = Typography;
 
 const { Header, Sider } = Layout;
 
-const MainLayout: React.FC = () => {
+type MainLayoutProps = {
+    isDark: boolean,
+    setDark: React.Dispatch<React.SetStateAction<boolean>>,
+    isCompact: boolean,
+    setCompact: React.Dispatch<React.SetStateAction<boolean>>,
+    isRounded: boolean,
+    setRounded: React.Dispatch<React.SetStateAction<boolean>>
+}
+
+function MainLayout(mainLayoutProps: MainLayoutProps) {
+    const { isDark, setDark, isCompact, setCompact, isRounded, setRounded } = mainLayoutProps
     const navigate = useNavigate();
 
     const {
@@ -231,6 +248,15 @@ const MainLayout: React.FC = () => {
                     </Routes>
                 </Layout>
             </Layout>
+            <FloatButton.Group
+                trigger='click'
+                shape={isRounded ? 'circle' : 'square'}
+                icon={<FormatPainterOutlined />}
+            >
+                <FloatButton icon={isDark ? <SunOutlined /> : <MoonOutlined />} onClick={() => setDark(!isDark)} />
+                <FloatButton icon={isCompact ? <ExpandOutlined /> : <CompressOutlined />} onClick={() => setCompact(!isCompact)} />
+                <FloatButton icon={isRounded ? <CheckSquareOutlined /> : <CheckCircleOutlined />} onClick={() => setRounded(!isRounded)} />
+            </FloatButton.Group>
         </Flex>
     );
 };
