@@ -25,6 +25,7 @@ type TableCarData = {
     url?: string,
     year: (number | null)[],
     price: (number | null)[],
+    mileage: (number | null)[],
     power: (number | null)[],
     torque: (number | null)[],
     displacement: (number | null)[],
@@ -190,6 +191,7 @@ export function AllCarsList(allCarListProps: AllCarListProps) {
                     url: car.url,
                     year: [car.year, car.year],
                     price: [car.price, car.price],
+                    mileage: [car.mileage, car.mileage],
                     power: [car.specs.enginePower, car.specs.enginePower],
                     torque: [car.specs.engineTorque, car.specs.engineTorque],
                     displacement: [car.specs.engineDisplacement, car.specs.engineDisplacement],
@@ -213,6 +215,7 @@ export function AllCarsList(allCarListProps: AllCarListProps) {
         }
         group.year = computeNewMinMax(group.year, car.year)
         group.price = computeNewMinMax(group.price, car.price)
+        group.mileage = computeNewMinMax(group.mileage, car.mileage)
         group.power = computeNewMinMax(group.power, car.power)
         group.torque = computeNewMinMax(group.torque, car.torque)
         group.displacement = computeNewMinMax(group.displacement, car.displacement)
@@ -233,6 +236,7 @@ export function AllCarsList(allCarListProps: AllCarListProps) {
                     make: car.make,
                     year: car.year,
                     price: car.price,
+                    mileage: car.mileage,
                     power: car.power,
                     torque: car.torque,
                     displacement: car.displacement,
@@ -256,6 +260,7 @@ export function AllCarsList(allCarListProps: AllCarListProps) {
                     model: car.model,
                     year: car.year,
                     price: car.price,
+                    mileage: car.mileage,
                     power: car.power,
                     torque: car.torque,
                     displacement: car.displacement,
@@ -281,6 +286,7 @@ export function AllCarsList(allCarListProps: AllCarListProps) {
                     variant: car.variant,
                     year: car.year,
                     price: car.price,
+                    mileage: car.mileage,
                     power: car.power,
                     torque: car.torque,
                     displacement: car.displacement,
@@ -350,6 +356,15 @@ export function AllCarsList(allCarListProps: AllCarListProps) {
                 return defaultRangeRenderer(record.price)
             },
             sorter: (a, b, sortOrder) => defaultRangeSorter(a.price, b.price, sortOrder),
+            width: 200
+        },
+        {
+            title: 'Mileage',
+            key: 'mileage',
+            render: (value, record) => {
+                return defaultRangeRenderer(record.mileage)
+            },
+            sorter: (a, b, sortOrder) => defaultRangeSorter(a.mileage, b.mileage, sortOrder),
             width: 200
         },
         {
