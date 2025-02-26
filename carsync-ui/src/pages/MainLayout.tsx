@@ -134,10 +134,9 @@ function MainLayout(mainLayoutProps: MainLayoutProps) {
                 height: '100vh',
                 width: '100vw',
             }}>
-            <Layout style={{ width: '100%' }}>
+            <Layout style={{ width: '100%', padding: 24 }}>
                 <Header style={{
                     padding: 0,
-                    margin: '24px 24px 0px 24px',
                     background: colorBgContainer,
                     borderRadius: `${borderRadiusLG}px ${borderRadiusLG}px ${0}px ${0}px`,
                     position: 'sticky',
@@ -157,7 +156,6 @@ function MainLayout(mainLayoutProps: MainLayoutProps) {
                     overflow: 'auto',
                     width: '100%',
                     position: 'sticky',
-                    padding: '0 24px 24px 24px',
                     insetInlineStart: 0,
                     top: 0,
                     bottom: 0,
@@ -246,15 +244,23 @@ function MainLayout(mainLayoutProps: MainLayoutProps) {
                     </Layout>
                 </Layout>
             </Layout>
-            <FloatButton.Group
-                trigger='click'
-                shape={isRounded ? 'circle' : 'square'}
-                icon={<FormatPainterOutlined />}
-            >
-                <FloatButton icon={isDark ? <SunOutlined /> : <MoonOutlined />} onClick={() => setDark(!isDark)} />
-                <FloatButton icon={isCompact ? <ExpandOutlined /> : <CompressOutlined />} onClick={() => setCompact(!isCompact)} />
-                <FloatButton icon={isRounded ? <CheckSquareOutlined /> : <CheckCircleOutlined />} onClick={() => setRounded(!isRounded)} />
-            </FloatButton.Group>
+            <ConfigProvider theme={{
+                token: {
+                    boxShadowSecondary: ''
+                }
+            }}>
+                <FloatButton.Group
+                    trigger='click'
+                    shape={isRounded ? 'circle' : 'square'}
+                    icon={<FormatPainterOutlined />}
+                    style={{ insetInlineEnd: 24, bottom: 24 }}
+                >
+                    <FloatButton icon={isDark ? <SunOutlined /> : <MoonOutlined />} onClick={() => setDark(!isDark)} />
+                    <FloatButton icon={isCompact ? <ExpandOutlined /> : <CompressOutlined />} onClick={() => setCompact(!isCompact)} />
+                    <FloatButton icon={isRounded ? <CheckSquareOutlined /> : <CheckCircleOutlined />} onClick={() => setRounded(!isRounded)} />
+                </FloatButton.Group>
+            </ConfigProvider>
+
         </Flex>
     );
 };

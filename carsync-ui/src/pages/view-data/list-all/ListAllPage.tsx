@@ -58,7 +58,7 @@ const ListAllPage: React.FC = () => {
 
     return (
         <>
-            <Flex vertical style={{ padding: '12px 0 24px 0' }}>
+            <Flex vertical>
                 <Flex vertical style={{
                     position: 'sticky',
                     top: 0,

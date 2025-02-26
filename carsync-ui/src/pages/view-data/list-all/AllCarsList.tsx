@@ -4,7 +4,7 @@ import {
     LinkOutlined,
     UngroupOutlined,
 } from '@ant-design/icons';
-import { Flex, Input, Radio, RadioChangeEvent, Table, TableColumnsType, Tooltip } from "antd";
+import { ConfigProvider, Flex, Input, Radio, RadioChangeEvent, Table, TableColumnsType, Tooltip, theme } from "antd";
 import { SortOrder } from 'antd/es/table/interface';
 import { RenderedCell } from 'rc-table/lib/interface';
 import React, { useEffect, useState } from "react";
@@ -41,10 +41,16 @@ export function AllCarsList(allCarListProps: AllCarListProps) {
         loading
     } = allCarListProps
 
+
+    const {
+        token: { colorBgContainer, colorSuccessBg, colorErrorBg },
+    } = theme.useToken();
+
     const [listView, setListView] = useState<string>('group')
     const [filteredCars, setFilteredCars] = useState<TableCarData[]>([])
     const [filteredCarsTree, setFilteredCarsTree] = useState<TableCarData[]>([])
     const [nameFilter, setNameFilter] = useState<string>('')
+    const [isAscend, setAscend] = useState<boolean>(true)
 
     const isList = (): boolean => {
         return listView == 'list';
@@ -92,7 +98,8 @@ export function AllCarsList(allCarListProps: AllCarListProps) {
         return defaultTextRenderer(text);
     }
 
-    const defaultTextSorter = (a: string | null | undefined, b: string | null | undefined): number => {
+    const defaultTextSorter = (a: string | null | undefined, b: string | null | undefined, sortOrder: SortOrder | undefined): number => {
+        setAscend(sortOrder == 'ascend');
         if (a == null) {
             return -1
         } else if (b == null) {
@@ -126,6 +133,7 @@ export function AllCarsList(allCarListProps: AllCarListProps) {
     }
 
     const defaultRangeSorter = (a: (number | null)[], b: (number | null)[], sortOrder: SortOrder | undefined): number => {
+        setAscend(sortOrder == 'ascend');
         if (sortOrder == null) {
             return 0;
         } else {
@@ -313,7 +321,7 @@ export function AllCarsList(allCarListProps: AllCarListProps) {
                     {defaultTextRenderer(record.name)}
                 </>
             },
-            sorter: (a, b) => defaultTextSorter(a.name, b.name),
+            sorter: (a, b, sortOrder) => defaultTextSorter(a.name, b.name, sortOrder),
             defaultSortOrder: 'ascend',
             width: 420,
             ellipsis: true
@@ -448,15 +456,28 @@ export function AllCarsList(allCarListProps: AllCarListProps) {
                 />
             </Flex>
 
-            <Table<TableCarData>
-                columns={columns}
-                dataSource={isList() ? filteredCars : filteredCarsTree}
-                loading={loading}
-                virtual
-                scroll={{ x: '100%', y: '100%' }}
-                showSorterTooltip={false}
-                pagination={false}
-            />
+            <ConfigProvider theme={{
+                token: {
+                    colorBorderSecondary: 'rgba(127,127,127,0.1)',
+                },
+                components: {
+                    Table: {
+                        headerBg: colorBgContainer,
+                        headerSortActiveBg: isAscend ? colorSuccessBg : colorErrorBg,
+                    }
+                }
+            }}>
+                <Table<TableCarData>
+                    columns={columns}
+                    dataSource={isList() ? filteredCars : filteredCarsTree}
+                    loading={loading}
+                    virtual
+                    bordered
+                    scroll={{ x: '100%', y: '100%' }}
+                    showSorterTooltip={false}
+                    pagination={false}
+                />
+            </ConfigProvider>
         </Flex>
     </>
 }

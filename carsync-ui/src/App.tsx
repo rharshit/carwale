@@ -4,12 +4,12 @@ import MainLayout from "./pages/MainLayout";
 
 function App() {
 
-  const [isDark, setDark] = useState<boolean>(true);
-  const [isCompact, setCompact] = useState<boolean>(false);
-  const [isRounded, setRounded] = useState<boolean>(false);
+  const [isDark, setDark] = useState<boolean>(false);
+  const [isCompact, setCompact] = useState<boolean>(true);
+  const [isRounded, setRounded] = useState<boolean>(true);
 
   const getCorners = (radius: number, isRounded: boolean): number => {
-    return isRounded ? radius * 4 : radius;
+    return isRounded ? radius * (isCompact ? 2 : 4) : radius;
   }
 
   return (
