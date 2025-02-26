@@ -66,7 +66,7 @@ export function AllCarsList(allCarListProps: AllCarListProps) {
         return <Text disabled={disabled}>{element}</Text>
     }
 
-    const defaultRangeRenderer = (value: (number | null)[]): React.ReactNode | RenderedCell<TableCarData> => {
+    const defaultRangeRenderer = (value: (number | null)[], format: boolean = false): React.ReactNode | RenderedCell<TableCarData> => {
         let text = ''
         if (value == null) {
             text = ''
@@ -74,30 +74,34 @@ export function AllCarsList(allCarListProps: AllCarListProps) {
             text = ''
         } else {
             if (value.length == 1) {
-                text = '' + (value[0] ?? '')
+                text = '' + formatNumber(value[0], format)
             } else if (value.length == 2) {
                 if (value[0] == null) {
                     if (value[1] == null) {
                         text = ''
                     } else {
-                        text = '' + (value[1] ?? '')
+                        text = '' + formatNumber(value[1], format)
                     }
                 } else {
                     if (value[1] == null) {
-                        text = '' + (value[0] ?? '')
+                        text = '' + formatNumber(value[0], format)
                     } else {
                         if (value[0] == value[1]) {
-                            text = '' + (value[0] ?? '')
+                            text = '' + formatNumber(value[0], format)
                         } else {
-                            text = value.join(' - ')
+                            text = value.map(val => formatNumber(val, format)).join(' - ')
                         }
                     }
                 }
             } else {
-                text = value.join(' - ')
+                text = value.map(val => formatNumber(val, format)).join(' - ')
             }
         }
         return defaultTextRenderer(text);
+    }
+
+    const formatNumber = (value: (number | null), format: boolean): string => {
+        return format ? (value ?? '').toLocaleString('hi-IN') : (value ?? '').toString()
     }
 
     const defaultTextSorter = (a: string | null | undefined, b: string | null | undefined, sortOrder: SortOrder | undefined): number => {
@@ -320,7 +324,7 @@ export function AllCarsList(allCarListProps: AllCarListProps) {
             title: 'Name',
             key: 'name',
             fixed: true,
-            render: (value, record) => {
+            render: (_value, record) => {
                 function getNumCars(record: TableCarData) {
                     const children: TableCarData[] | undefined = record.children;
                     if (children == null) {
@@ -355,7 +359,7 @@ export function AllCarsList(allCarListProps: AllCarListProps) {
         {
             title: 'City',
             key: 'city',
-            render: (value, record) => {
+            render: (_value, record) => {
                 return defaultTextRenderer(record.city ?? '')
             },
             width: 150
@@ -363,7 +367,7 @@ export function AllCarsList(allCarListProps: AllCarListProps) {
         {
             title: 'Year',
             key: 'year',
-            render: (value, record) => {
+            render: (_value, record) => {
                 return defaultRangeRenderer(record.year)
             },
             sorter: (a, b, sortOrder) => defaultRangeSorter(a.year, b.year, sortOrder),
@@ -372,8 +376,8 @@ export function AllCarsList(allCarListProps: AllCarListProps) {
         {
             title: 'Price',
             key: 'price',
-            render: (value, record) => {
-                return defaultRangeRenderer(record.price)
+            render: (_value, record) => {
+                return defaultRangeRenderer(record.price, true)
             },
             sorter: (a, b, sortOrder) => defaultRangeSorter(a.price, b.price, sortOrder),
             width: 200
@@ -381,8 +385,8 @@ export function AllCarsList(allCarListProps: AllCarListProps) {
         {
             title: 'Mileage',
             key: 'mileage',
-            render: (value, record) => {
-                return defaultRangeRenderer(record.mileage)
+            render: (_value, record) => {
+                return defaultRangeRenderer(record.mileage, true)
             },
             sorter: (a, b, sortOrder) => defaultRangeSorter(a.mileage, b.mileage, sortOrder),
             width: 200
@@ -390,7 +394,7 @@ export function AllCarsList(allCarListProps: AllCarListProps) {
         {
             title: 'Power',
             key: 'power',
-            render: (value, record) => {
+            render: (_value, record) => {
                 return defaultRangeRenderer(record.power)
             },
             sorter: (a, b, sortOrder) => defaultRangeSorter(a.power, b.power, sortOrder),
@@ -399,7 +403,7 @@ export function AllCarsList(allCarListProps: AllCarListProps) {
         {
             title: 'Torque',
             key: 'torque',
-            render: (value, record) => {
+            render: (_value, record) => {
                 return defaultRangeRenderer(record.torque)
             },
             sorter: (a, b, sortOrder) => defaultRangeSorter(a.torque, b.torque, sortOrder),
@@ -408,7 +412,7 @@ export function AllCarsList(allCarListProps: AllCarListProps) {
         {
             title: 'Displacement',
             key: 'displacement',
-            render: (value, record) => {
+            render: (_value, record) => {
                 return defaultRangeRenderer(record.displacement)
             },
             sorter: (a, b, sortOrder) => defaultRangeSorter(a.displacement, b.displacement, sortOrder),
@@ -417,7 +421,7 @@ export function AllCarsList(allCarListProps: AllCarListProps) {
         {
             title: 'Length',
             key: 'length',
-            render: (value, record) => {
+            render: (_value, record) => {
                 return defaultRangeRenderer(record.length)
             },
             sorter: (a, b, sortOrder) => defaultRangeSorter(a.length, b.length, sortOrder),
@@ -426,7 +430,7 @@ export function AllCarsList(allCarListProps: AllCarListProps) {
         {
             title: 'Width',
             key: 'width',
-            render: (value, record) => {
+            render: (_value, record) => {
                 return defaultRangeRenderer(record.width)
             },
             sorter: (a, b, sortOrder) => defaultRangeSorter(a.width, b.width, sortOrder),
@@ -435,7 +439,7 @@ export function AllCarsList(allCarListProps: AllCarListProps) {
         {
             title: 'Height',
             key: 'height',
-            render: (value, record) => {
+            render: (_value, record) => {
                 return defaultRangeRenderer(record.height)
             },
             sorter: (a, b, sortOrder) => defaultRangeSorter(a.height, b.height, sortOrder),
@@ -444,7 +448,7 @@ export function AllCarsList(allCarListProps: AllCarListProps) {
         {
             title: 'Wheelbase',
             key: 'wheelbase',
-            render: (value, record) => {
+            render: (_value, record) => {
                 return defaultRangeRenderer(record.wheelbase)
             },
             sorter: (a, b, sortOrder) => defaultRangeSorter(a.wheelbase, b.wheelbase, sortOrder),
@@ -473,7 +477,8 @@ export function AllCarsList(allCarListProps: AllCarListProps) {
                     placeholder={`Search ${allCars.length} cars`}
                     style={{ width: '25%' }}
                     value={nameFilter}
-                    onChange={e => { setNameFilter(e.target.value) }} />
+                    onChange={e => { setNameFilter(e.target.value) }}
+                    allowClear />
                 <Flex wrap align="center">
                     {allSelectableColumnKeys.map<React.ReactNode>((columnKey) => (
                         <Tag.CheckableTag
