@@ -4,10 +4,10 @@ import {
     LinkOutlined,
     UngroupOutlined,
 } from '@ant-design/icons';
-import { ConfigProvider, Flex, Input, Radio, RadioChangeEvent, Table, TableColumnsType, Tooltip, theme } from "antd";
+import { ConfigProvider, Flex, Input, Radio, RadioChangeEvent, Table, TableColumnsType, Tag, Tooltip, theme } from "antd";
 import { SortOrder } from 'antd/es/table/interface';
 import { RenderedCell } from 'rc-table/lib/interface';
-import React, { useEffect, useState } from "react";
+import React, { Key, useEffect, useState } from "react";
 import { CarModel } from "../common/Types";
 
 type AllCarListProps = {
@@ -318,7 +318,7 @@ export function AllCarsList(allCarListProps: AllCarListProps) {
         {
             title: 'Name',
             key: 'name',
-            fixed: 'left',
+            fixed: true,
             render: (value, record) => {
                 return <>
                     {(
@@ -432,6 +432,20 @@ export function AllCarsList(allCarListProps: AllCarListProps) {
         },
     ]
 
+    const allSelectableColumnKeys: Key[] = columns.filter((column) => { return column.fixed == null || column.fixed == false }).map((column) => { return column.key ?? '' })
+    const [selectedColumnKeys, setSelectedColumnKeys] = useState<Key[]>(allSelectableColumnKeys)
+
+    const handleColumnChange = (columnKey: Key, checked: boolean) => {
+        const nextSelectedColumns = checked
+            ? [...selectedColumnKeys, columnKey]
+            : selectedColumnKeys.filter((c) => c !== columnKey);
+        setSelectedColumnKeys(nextSelectedColumns);
+    };
+
+    const capitalize = (text: string): string => {
+        return text.charAt(0).toUpperCase() + text.slice(1);
+    }
+
     return <>
         <Flex vertical>
             <Flex align='center' justify='space-between' style={{ padding: '8px 0 8px 0' }}>
@@ -440,6 +454,17 @@ export function AllCarsList(allCarListProps: AllCarListProps) {
                     style={{ width: '25%' }}
                     value={nameFilter}
                     onChange={e => { setNameFilter(e.target.value) }} />
+                <Flex wrap align="center">
+                    {allSelectableColumnKeys.map<React.ReactNode>((columnKey) => (
+                        <Tag.CheckableTag
+                            key={columnKey}
+                            checked={selectedColumnKeys.includes(columnKey)}
+                            onChange={(checked) => handleColumnChange(columnKey, checked)}
+                        >
+                            {capitalize(columnKey.toLocaleString())}
+                        </Tag.CheckableTag>
+                    ))}
+                </Flex>
                 <Radio.Group
                     onChange={onChangeListView}
                     value={listView}
@@ -484,7 +509,7 @@ export function AllCarsList(allCarListProps: AllCarListProps) {
                 }
             }}>
                 <Table<TableCarData>
-                    columns={columns}
+                    columns={columns.filter(column => column.fixed || selectedColumnKeys.includes(column.key ?? ''))}
                     dataSource={isList() ? filteredCars : filteredCarsTree}
                     loading={loading}
                     virtual
