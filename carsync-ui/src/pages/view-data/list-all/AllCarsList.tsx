@@ -458,7 +458,8 @@ export function AllCarsList(allCarListProps: AllCarListProps) {
 
             <ConfigProvider theme={{
                 token: {
-                    colorBorderSecondary: 'rgba(127,127,127,0.1)',
+                    colorBorderSecondary: 'rgba(127,127,127,0.0)',
+                    borderRadiusLG: 0,
                 },
                 components: {
                     Table: {
