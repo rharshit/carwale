@@ -1,11 +1,9 @@
-import { Flex, Typography, theme } from 'antd';
+import { Flex, theme } from 'antd';
 import React, { useState } from 'react';
 import { post } from '../../../service/api';
 import { CarModel } from '../common/Types';
 import { CarFilter, FilterSortComponent } from '../filter/FilterComponent';
 import AllCarsList from './AllCarsList';
-
-const { Title } = Typography;
 
 export interface AllCarsResponse {
     success: boolean
@@ -60,7 +58,7 @@ const ListAllPage: React.FC = () => {
 
     return (
         <>
-            <Flex vertical>
+            <Flex vertical style={{ padding: '12px 0 24px 0' }}>
                 <Flex vertical style={{
                     position: 'sticky',
                     top: 0,
@@ -69,9 +67,6 @@ const ListAllPage: React.FC = () => {
                     display: 'flex',
                     background: colorBgContainer,
                 }}>
-                    <Title level={3}>
-                        All Cars
-                    </Title>
                     <FilterSortComponent
                         onApplyFilter={onApplyFilter}
                         isApplyingFilter={isApplyingFilter}

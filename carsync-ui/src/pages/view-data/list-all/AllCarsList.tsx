@@ -453,7 +453,7 @@ export function AllCarsList(allCarListProps: AllCarListProps) {
                 dataSource={isList() ? filteredCars : filteredCarsTree}
                 loading={loading}
                 virtual
-                scroll={{ x: 2000, y: 400 }}
+                scroll={{ x: '100%', y: '100%' }}
                 showSorterTooltip={false}
                 pagination={false}
             />
