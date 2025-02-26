@@ -8,6 +8,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 
+import java.util.List;
 import java.util.Objects;
 
 @Document("carModels")
@@ -36,6 +37,8 @@ public class CarModel {
     private Integer mileage;
     @NonNull
     private String url;
+    @NonNull
+    private List<String> imageUrls;
     @NonNull
     private Specs specs = new Specs();
 

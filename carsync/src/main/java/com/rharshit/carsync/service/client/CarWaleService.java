@@ -167,29 +167,27 @@ public class CarWaleService extends ClientService<CarWaleCarModel> {
             long startTime = System.currentTimeMillis();
             String response = getRestClient().get().uri(url).retrieve().body(String.class);
             if (response == null) {
-                log.debug("Error fetching details for car : {} {} {} {}. Retrying...", carModel.getMake(), carModel.getModel(), carModel.getVariant(), url);
-                response = getRestClient().get().uri(url).retrieve().body(String.class);
-                if (response == null) {
-                    log.error("Error fetching details for car : {} {} {} {}. Giving up...", carModel.getMake(), carModel.getModel(), carModel.getVariant(), url);
-                    return;
-                }
+                return;
             }
             Document doc = Jsoup.parse(response);
-            Elements specPairs = doc.getElementsByTag("ul");
-
-            for (Element specPair : specPairs) {
-                Elements specElements = specPair.getElementsByTag("li");
-                if (specElements.size() == 2) {
-                    List<String> specs = specElements.stream().map(Element::text).toList();
-                    populateSpecs(carModel.getSpecs(), specs);
-                }
-            }
+            populateSpecs(doc, carModel);
             pushCar(carModel);
             log.trace("Fetched details for car : {} {} {} in {}ms", carModel.getMake(), carModel.getModel(), carModel.getVariant(), System.currentTimeMillis() - startTime);
         } catch (Exception e) {
             log.error("Error fetching details for car : {} {} {} {}", carModel.getMake(), carModel.getModel(), carModel.getVariant(), url, e);
         }
 
+    }
+
+    private void populateSpecs(Document doc, CarWaleCarModel carModel) {
+        Elements specPairs = doc.getElementsByTag("ul");
+        for (Element specPair : specPairs) {
+            Elements specElements = specPair.getElementsByTag("li");
+            if (specElements.size() == 2) {
+                List<String> specs = specElements.stream().map(Element::text).toList();
+                updateSpecs(carModel.getSpecs(), specs);
+            }
+        }
     }
 
     private void populateCarModel(AllCarResponse.Stock stock, CarWaleCarModel carModel) {
@@ -201,10 +199,11 @@ public class CarWaleService extends ClientService<CarWaleCarModel> {
         carModel.setYear(stock.makeYear);
         carModel.setPrice(Integer.parseInt(stock.priceNumeric));
         carModel.setMileage(Integer.parseInt(stock.kmNumeric));
+        carModel.setImageUrls(stock.stockImages);
         carModel.setUrl(getClientDomain() + stock.url);
     }
 
-    private void populateSpecs(CarModel.Specs carSpecs, List<String> webSpecs) {
+    private void updateSpecs(CarModel.Specs carSpecs, List<String> webSpecs) {
         try {
             switch (webSpecs.getFirst()) {
                 case "Engine":
