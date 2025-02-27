@@ -12,6 +12,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import org.springframework.web.client.RestClient;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -64,6 +65,56 @@ public class CarWaleService extends ClientService<CarWaleCarModel> {
         addCityDetails();
     }
 
+    @Override
+    protected void cleanupData() {
+        long startTime = System.currentTimeMillis();
+        log.info("Getting data to scan for {}", getClientName());
+        List<CarModel> allCars = new ArrayList<>(carModelRepository.findAllCarsByClient(getClientId()).toList());
+        allCars.sort((o1, o2) -> {
+            if (o1.getValidatedAt() == null || o1.getValidatedAt() == 0) {
+                return -1;
+            } else if (o2.getValidatedAt() == null || o2.getValidatedAt() == 0) {
+                return 1;
+            } else {
+                return o1.getValidatedAt().compareTo(o2.getValidatedAt());
+            }
+        });
+        log.info("Starting to scan {} objects", allCars.size());
+        try (ExecutorService cleanupExecutor = Executors.newFixedThreadPool(100)) {
+            cleanupCount = allCars.size();
+            allCars.forEach(carModel -> cleanupExecutor.execute(() -> pruneIfInvalid(carModel)));
+
+            Utils.awaitShutdownExecutorService(cleanupExecutor);
+            cleanupCount = 0;
+            log.info("Cleanup executor shutdown");
+            log.info("Cleanup data from {} completed. Scanned {} objects in {}ms", getClientName(), allCars.size(), System.currentTimeMillis() - startTime);
+        }
+    }
+
+    private void pruneIfInvalid(CarModel carModel) {
+        long startTime = System.currentTimeMillis();
+        boolean valid;
+        try {
+            String response = RestClient.builder().build().get().uri(carModel.getUrl()).retrieve().body(String.class);
+            valid = response != null && !response.trim().isEmpty();
+        } catch (Exception e) {
+            valid = false;
+        }
+        if (!valid) {
+            log.trace("Adding car {} to prune list", carModel.getId());
+            deleteCar(carModel);
+        } else {
+            log.trace("Adding car {} to push list", carModel.getId());
+            carModel.setValidatedAt(System.currentTimeMillis());
+            pushCar(carModel);
+        }
+        cleanupCount--;
+        if (cleanupCount % 100 == 0) {
+            log.info("{} cars to be checked for cleanup", cleanupCount);
+        }
+        log.trace("Took {}ms to validate {}", System.currentTimeMillis() - startTime, carModel.getId());
+    }
+
     private String getCityFromUrl(String url) {
         String domain = getClientDomain();
         String urlParams = url.split(domain)[1];
@@ -88,6 +139,7 @@ public class CarWaleService extends ClientService<CarWaleCarModel> {
         log.info("Got {} cars to fix", totalSize);
         fixedCars.forEach(carModel -> {
             carModel.setCity(getCityFromUrl(carModel.getUrl()));
+            carModel.setUpdatedAt(System.currentTimeMillis());
         });
         while (!fixedCars.isEmpty()) {
             List<CarModel> toPush = fixedCars.stream().limit(pushSize).toList();
@@ -104,21 +156,22 @@ public class CarWaleService extends ClientService<CarWaleCarModel> {
         return carModelRepository.findCarsWithoutCity();
     }
 
+    //TODO: Implement dynamic limit
     private List<Integer> getCityList() {
-        CityListResponse cityListResponse = getRestClient().post().uri("/api/used-search/filters/")
+        CityListResponse cityListResponse = RestClient.builder().baseUrl(getClientDomain()).build().post().uri("/api/used-search/filters/")
                 .contentType(APPLICATION_JSON).body("{}")
                 .retrieve().body(CityListResponse.class);
         if (cityListResponse == null || cityListResponse.city == null) {
             return new ArrayList<>();
         }
-        return cityListResponse.city.stream().map(city -> city.cityId).distinct().toList();
+        return cityListResponse.city.stream().limit(25).map(city -> city.cityId).distinct().toList();
     }
 
     private void fetchCarsForCity(int city, ExecutorService dbExecutor, ExecutorService fetchExecutor) {
         List<AllCarResponse.Stock> currentStocks;
         int total;
         int fetched;
-        AllCarResponse response = getRestClient().post().uri("/api/stocks/filters/")
+        AllCarResponse response = RestClient.builder().baseUrl(getClientDomain()).build().post().uri("/api/stocks/filters/")
                 .contentType(APPLICATION_JSON).body("{\"pn\":\"1\",\"city\":\"" + city + "\",\"ps\":\"24\",\"sc\":\"-1\",\"so\":\"-1\",\"lcr\":\"24\",\"shouldfetchnearbycars\":\"False\"}")
                 .retrieve().body(AllCarResponse.class);
         assert response != null;
@@ -129,7 +182,7 @@ public class CarWaleService extends ClientService<CarWaleCarModel> {
         fetched = stocks.size();
         while (!response.stocks.isEmpty() && response.nextPageUrl != null) {
             log.trace("{}% : Fetched {} cars out of {} from CarWale", (int) getPercentage(total, fetched), fetched, total);
-            response = getRestClient().get().uri(response.nextPageUrl)
+            response = RestClient.builder().baseUrl(getClientDomain()).build().get().uri(response.nextPageUrl)
                     .retrieve().body(AllCarResponse.class);
             assert response != null;
             total = response.totalCount;
@@ -151,44 +204,47 @@ public class CarWaleService extends ClientService<CarWaleCarModel> {
     private void fetchStockDetails(AllCarResponse.Stock stock, ExecutorService fetchExecutor) {
         log.trace("Fetching details for car : {} {} {}", stock.makeName, stock.modelName, stock.versionName);
         CarWaleCarModel carModel = new CarWaleCarModel(stock.profileId);
-        populateCarModel(stock, carModel);
-
-        boolean fetched = isCarDetailFetched(carModel.getClientId());
-        if (fetched) {
+        CarModel fetchedCar = fetchCarDetailsFromDb(carModel.getClientId());
+        if (fetchedCar != null) {
             log.trace("Details already fetched for car : {} {} {}", carModel.getMake(), carModel.getModel(), carModel.getVariant());
+            if ((fetchedCar.getImageUrls() == null || fetchedCar.getImageUrls().isEmpty()) &&
+                    stock.stockImages != null && !stock.stockImages.isEmpty()) {
+                fetchedCar.setImageUrls(stock.stockImages);
+                pushCar(fetchedCar);
+            }
+
             return;
         }
+        populateCarModel(stock, carModel);
         fetchExecutor.execute(() -> fetchStockDetails(carModel, stock.url));
     }
 
     private void fetchStockDetails(CarWaleCarModel carModel, String url) {
         try {
             long startTime = System.currentTimeMillis();
-            String response = getRestClient().get().uri(url).retrieve().body(String.class);
+            String response = RestClient.builder().baseUrl(getClientDomain()).build().get().uri(url).retrieve().body(String.class);
             if (response == null) {
-                log.debug("Error fetching details for car : {} {} {} {}. Retrying...", carModel.getMake(), carModel.getModel(), carModel.getVariant(), url);
-                response = getRestClient().get().uri(url).retrieve().body(String.class);
-                if (response == null) {
-                    log.error("Error fetching details for car : {} {} {} {}. Giving up...", carModel.getMake(), carModel.getModel(), carModel.getVariant(), url);
-                    return;
-                }
+                return;
             }
             Document doc = Jsoup.parse(response);
-            Elements specPairs = doc.getElementsByTag("ul");
-
-            for (Element specPair : specPairs) {
-                Elements specElements = specPair.getElementsByTag("li");
-                if (specElements.size() == 2) {
-                    List<String> specs = specElements.stream().map(Element::text).toList();
-                    populateSpecs(carModel.getSpecs(), specs);
-                }
-            }
+            populateSpecs(doc, carModel);
             pushCar(carModel);
             log.trace("Fetched details for car : {} {} {} in {}ms", carModel.getMake(), carModel.getModel(), carModel.getVariant(), System.currentTimeMillis() - startTime);
         } catch (Exception e) {
             log.error("Error fetching details for car : {} {} {} {}", carModel.getMake(), carModel.getModel(), carModel.getVariant(), url, e);
         }
 
+    }
+
+    private void populateSpecs(Document doc, CarWaleCarModel carModel) {
+        Elements specPairs = doc.getElementsByTag("ul");
+        for (Element specPair : specPairs) {
+            Elements specElements = specPair.getElementsByTag("li");
+            if (specElements.size() == 2) {
+                List<String> specs = specElements.stream().map(Element::text).toList();
+                updateSpecs(carModel.getSpecs(), specs);
+            }
+        }
     }
 
     private void populateCarModel(AllCarResponse.Stock stock, CarWaleCarModel carModel) {
@@ -200,10 +256,14 @@ public class CarWaleService extends ClientService<CarWaleCarModel> {
         carModel.setYear(stock.makeYear);
         carModel.setPrice(Integer.parseInt(stock.priceNumeric));
         carModel.setMileage(Integer.parseInt(stock.kmNumeric));
+        carModel.setImageUrls(stock.stockImages);
         carModel.setUrl(getClientDomain() + stock.url);
+        carModel.setCreatedAt(System.currentTimeMillis());
+        carModel.setUpdatedAt(System.currentTimeMillis());
+        carModel.setValidatedAt(System.currentTimeMillis());
     }
 
-    private void populateSpecs(CarModel.Specs carSpecs, List<String> webSpecs) {
+    private void updateSpecs(CarModel.Specs carSpecs, List<String> webSpecs) {
         try {
             switch (webSpecs.getFirst()) {
                 case "Engine":

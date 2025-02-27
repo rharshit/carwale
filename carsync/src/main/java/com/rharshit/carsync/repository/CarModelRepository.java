@@ -9,6 +9,7 @@ import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.stream.Stream;
 
 import static com.rharshit.carsync.common.Constants.CACHE_KEY_ALL_CARS;
 
@@ -62,4 +63,7 @@ public interface CarModelRepository extends MongoRepository<CarModel, String>, A
 
     @Query("{'city' : { $exists: false }}")
     List<CarModel> findCarsWithoutCity();
+
+    @Query("{'client': ?0}")
+    Stream<CarModel> findAllCarsByClient(String clientId);
 }

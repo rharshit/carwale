@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 const baseUrl = 'http://localhost:8080/api';
 
-const call = (url: string, method: string, data: any) => {
+const call = (url: string, method: string, data: any, json: boolean, absolute: boolean) => {
     const options: RequestInit = {
         method: method,
         headers: new Headers({
@@ -13,21 +13,23 @@ const call = (url: string, method: string, data: any) => {
     if (method != 'GET') {
         options.body = JSON.stringify(data);
     }
-    return fetch(baseUrl + url, options).then(res => res.json());
+    return json
+        ? fetch((absolute ? '' : baseUrl) + url, options).then(res => res.json())
+        : fetch((absolute ? '' : baseUrl) + url, options)
 }
 
-export const get = (url: string) => {
-    return call(url, 'GET', {});
+export const get = (url: string, json: boolean = true, absolute: boolean = false) => {
+    return call(url, 'GET', {}, json, absolute);
 }
 
-export const post = (url: string, data: any) => {
-    return call(url, 'POST', data);
+export const post = (url: string, data: any, json: boolean = true, absolute: boolean = false) => {
+    return call(url, 'POST', data, json, absolute);
 }
 
-export const put = (url: string, data: any) => {
-    return call(url, 'PUT', data);
+export const put = (url: string, data: any, json: boolean = true, absolute: boolean = false) => {
+    return call(url, 'PUT', data, json, absolute);
 }
 
-export const del = (url: string, data: any) => {
-    return call(url, 'DELETE', data);
+export const del = (url: string, data: any, json: boolean = true, absolute: boolean = false) => {
+    return call(url, 'DELETE', data, json, absolute);
 }

@@ -89,4 +89,12 @@ public class CarService {
             return carFilterResponse;
         }
     }
+
+    public String startCleanup(String client) {
+        ClientService<? extends ClientCarModel> clientService = carFactory.getClientService(client);
+        if (clientService == null) {
+            return "Client not found";
+        }
+        return clientService.startCleanupThread();
+    }
 }

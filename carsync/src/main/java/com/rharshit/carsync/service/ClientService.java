@@ -5,12 +5,12 @@ import com.rharshit.carsync.model.ClientCarModel;
 import com.rharshit.carsync.model.MakeModel;
 import com.rharshit.carsync.repository.CarModelRepository;
 import com.rharshit.carsync.repository.MakeModelRepository;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestClient;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -28,11 +28,15 @@ public abstract class ClientService<T extends ClientCarModel> {
 
     protected final List<CarModel> carPushList = Collections.synchronizedList(new ArrayList<>());
 
+    protected final List<CarModel> carDeleteList = Collections.synchronizedList(new ArrayList<>());
+
     private Thread fetchThread;
 
     private Thread fixThread;
 
-    private RestClient restClient;
+    private Thread cleanupThread;
+
+    protected int cleanupCount;
 
     public abstract String getClientId();
 
@@ -44,18 +48,14 @@ public abstract class ClientService<T extends ClientCarModel> {
 
     protected abstract void fixAllCars();
 
+    protected abstract void cleanupData();
+
     protected final List<CarModel> carStagingList = Collections.synchronizedList(new ArrayList<>());
+    protected final List<CarModel> carPruningList = Collections.synchronizedList(new ArrayList<>());
 
     private static final List<CarModel> carCheckList = Collections.synchronizedList(new ArrayList<>());
     private static final List<CarModel> carExistList = Collections.synchronizedList(new ArrayList<>());
     private static final List<CarModel> carNotExistList = Collections.synchronizedList(new ArrayList<>());
-
-    protected synchronized RestClient getRestClient() {
-        if (restClient == null) {
-            restClient = RestClient.builder().baseUrl(getClientDomain()).build();
-        }
-        return restClient;
-    }
 
     /**
      * Fetch all cars from the client
@@ -90,10 +90,9 @@ public abstract class ClientService<T extends ClientCarModel> {
     /**
      * Push car to staging list
      *
-     * @param clientCarModel
+     * @param carModel
      */
-    protected void pushCar(T clientCarModel) {
-        CarModel carModel = clientCarModel.generateCarModel();
+    protected <C extends CarModel> void pushCar(C carModel) {
         synchronized (carPushList) {
             carPushList.add(carModel);
         }
@@ -104,18 +103,23 @@ public abstract class ClientService<T extends ClientCarModel> {
      *
      * @param carModels
      */
-    protected void pushCars(List<CarModel> carModels) {
+    protected <C extends CarModel> void pushCars(List<C> carModels) {
         synchronized (carPushList) {
             carPushList.addAll(carModels);
         }
     }
 
-    @Scheduled(fixedRate = 1000)
+    @SneakyThrows
+    @Scheduled(fixedDelay = 1)
     public void pushCarsToStaging() {
-        synchronized (carPushList) {
-            synchronized (carStagingList) {
-                carStagingList.addAll(carPushList);
-                carPushList.clear();
+        if(carPushList.isEmpty()) {
+            Thread.sleep(500);
+        } else {
+            synchronized (carPushList) {
+                synchronized (carStagingList) {
+                    carStagingList.addAll(carPushList);
+                    carPushList.clear();
+                }
             }
         }
     }
@@ -160,6 +164,59 @@ public abstract class ClientService<T extends ClientCarModel> {
         }
     }
 
+    protected <C extends CarModel> void deleteCar(C clientCarModel) {
+        synchronized (carDeleteList) {
+            carDeleteList.add(clientCarModel);
+        }
+    }
+
+    @SneakyThrows
+    @Scheduled(fixedDelay = 1)
+    public void carsToPrune() {
+        if(carDeleteList.isEmpty()) {
+            Thread.sleep(500);
+        } else {
+            synchronized (carDeleteList) {
+                synchronized (carPruningList) {
+                    carPruningList.addAll(carDeleteList);
+                    carDeleteList.clear();
+                }
+            }
+        }
+    }
+
+    @SneakyThrows
+    @Scheduled(fixedDelay = 1)
+    public void pruneCars() {
+        List<CarModel> carsToPrune;
+        synchronized (carPruningList) {
+            carsToPrune = new ArrayList<>(carPruningList);
+            carPruningList.clear();
+        }
+        if(carsToPrune.isEmpty()) {
+            Thread.sleep(100);
+        } else {
+            long startTime = System.currentTimeMillis();
+            log.info("pruneCars : Pruning {} cars from DB", carsToPrune.size());
+            boolean pruned = false;
+            try {
+                carModelRepository.deleteAllById(carsToPrune.stream().map(CarModel::getId).toList());
+                pruned = true;
+            } catch (Exception e) {
+                pruned = false;
+            } finally {
+                if (!pruned) {
+                    log.warn("Pruning cars to from failed. Pushing back to pruning list.");
+                    synchronized (carPruningList) {
+                        carPruningList.addAll(carsToPrune);
+                    }
+                } else {
+                    log.info("pruneCars : Pruned {} cars from DB in {}ms", carsToPrune.size(), System.currentTimeMillis() - startTime);
+                }
+            }
+        }
+    }
+
     private void updateMakeModel(List<CarModel> savedCarModels) {
         if (savedCarModels.isEmpty()) {
             return;
@@ -195,7 +252,7 @@ public abstract class ClientService<T extends ClientCarModel> {
         return makes;
     }
 
-    protected boolean isCarDetailFetched(String clientId) {
+    protected CarModel fetchCarDetailsFromDb(String clientId) {
         log.trace("Checking if car detail fetched for {}", clientId);
         CarModel carModel = new CarModel();
         carModel.setId(clientId);
@@ -206,7 +263,7 @@ public abstract class ClientService<T extends ClientCarModel> {
         log.trace("Added car {} to list", carModel.getId());
         checkForCarList();
         log.trace("Getting fetch details for {}", clientId);
-        return isFetched(carModel, true);
+        return fetch(carModel, false);
     }
 
     @Async
@@ -226,12 +283,10 @@ public abstract class ClientService<T extends ClientCarModel> {
             List<CarModel> carCheckedList = Collections.synchronizedList(new ArrayList<>());
             List<CarModel> carsFromDb = carModelRepository.findAllById(carCheckList.stream().map(CarModel::getId).toList());
             carCheckList.forEach(carCheck -> {
-                boolean carExists = false;
-                if (carsFromDb.stream().anyMatch(car -> carCheck.getId().equals(car.getId()))) {
-                    carExistList.add(carCheck);
-                    carExists = true;
-                }
-                if (!carExists) {
+                CarModel foundCar = carsFromDb.stream().filter(car -> carCheck.getId().equals(car.getId())).findFirst().orElse(null);
+                if (foundCar != null) {
+                    carExistList.add(foundCar);
+                } else {
                     carNotExistList.add(carCheck);
                 }
                 carCheckedList.add(carCheck);
@@ -243,9 +298,10 @@ public abstract class ClientService<T extends ClientCarModel> {
         log.debug("Checked for car list");
     }
 
-    private boolean isFetched(CarModel carModel, boolean timeout) {
+    private CarModel fetch(CarModel carModel, boolean timeout) {
         long fetchTimeout = 20000;
         long start = System.currentTimeMillis();
+        CarModel fetchedCar = null;
         try {
             int fetchStatus = 0;
             while (fetchStatus == 0 && (!timeout || System.currentTimeMillis() - start < fetchTimeout)) {
@@ -253,6 +309,7 @@ public abstract class ClientService<T extends ClientCarModel> {
                     synchronized (carNotExistList) {
                         if (carExistList.stream().anyMatch(car -> carModel.getId().equals(car.getId()))) {
                             fetchStatus = 1;
+                            fetchedCar = carExistList.stream().filter(car -> carModel.getId().equals(car.getId())).findFirst().orElse(null);
                             carExistList.removeAll(carExistList.stream().filter(car -> carModel.getId().equals(car.getId())).toList());
                         } else if (carNotExistList.stream().anyMatch(car -> carModel.getId().equals(car.getId()))) {
                             fetchStatus = -1;
@@ -268,24 +325,13 @@ public abstract class ClientService<T extends ClientCarModel> {
                     }
                 }
             }
-            switch (fetchStatus) {
-                case 1 -> {
-                    log.trace("Car detail fetched for {}", carModel.getId());
-                    return true;
-                }
-                case -1 -> {
-                    log.trace("Car detail not fetched for {}", carModel.getId());
-                    return false;
-                }
-                default -> {
-                    log.warn("Car detail fetch timeout for " + carModel.getId());
-                    return false;
-                }
+            if (fetchStatus == 0) {
+                log.warn("Car detail fetch timeout for " + carModel.getId());
             }
         } catch (Exception e) {
             log.error("Error checking car detail fetched", e);
-            return false;
         }
+        return fetchedCar;
     }
 
     public String startFixThread() {
@@ -306,6 +352,27 @@ public abstract class ClientService<T extends ClientCarModel> {
             return "Started fixing cars from " + getClientName();
         } else {
             return "Already fixing cars from " + getClientName();
+        }
+    }
+
+    public String startCleanupThread() {
+        log.info("Starting to cleanup data from {}", getClientName());
+        if (cleanupThread == null || !cleanupThread.isAlive()) {
+            cleanupThread = new Thread(() -> {
+                try {
+                    log.info("Cleaning up data from {}", getClientName());
+                    long startTime = System.currentTimeMillis();
+                    cleanupData();
+                    log.info("Cleaned up data from {} in {}ms", getClientName(), System.currentTimeMillis() - startTime);
+                } catch (Exception e) {
+                    log.error("Error cleaning up data for {}", getClientName(), e);
+                }
+            });
+            cleanupThread.setName("cleanupThread-" + getClientId());
+            cleanupThread.start();
+            return "Started cleaning up data from " + getClientName();
+        } else {
+            return "Already cleaning up data from " + getClientName();
         }
     }
 }

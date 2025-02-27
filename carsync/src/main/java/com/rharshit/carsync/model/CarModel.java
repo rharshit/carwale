@@ -8,6 +8,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 
+import java.util.List;
 import java.util.Objects;
 
 @Document("carModels")
@@ -37,7 +38,15 @@ public class CarModel {
     @NonNull
     private String url;
     @NonNull
+    private List<String> imageUrls;
+    @NonNull
     private Specs specs = new Specs();
+    @NonNull
+    private Long createdAt;
+    @NonNull
+    private Long updatedAt;
+    @NonNull
+    private Long validatedAt;
 
     @Override
     public boolean equals(Object o) {
@@ -49,6 +58,15 @@ public class CarModel {
     @Override
     public int hashCode() {
         return Objects.hash(id, client, clientId, make, model, variant, year, url);
+    }
+
+    /*
+    Update created at field only if it does not already exist
+     */
+    public void setCreatedAt(@NonNull Long createdAt) {
+        if (this.createdAt == null || this.createdAt == 0) {
+            this.createdAt = createdAt;
+        }
     }
 
     @Data
@@ -82,5 +100,10 @@ public class CarModel {
         private Integer bootSpace;
         @Nullable
         private String drivetrain;
+    }
+
+    public CarModel generateCarModel() {
+        return new CarModel(getId(), getClient(), getClientId(), getCity(), getMake(), getModel(), getVariant(), getYear(),
+                getPrice(), getMileage(), getUrl(), getImageUrls(), getSpecs(), getCreatedAt(), getUpdatedAt(), getValidatedAt());
     }
 }
