@@ -346,6 +346,22 @@ export function AllCarsList(allCarListProps: AllCarListProps) {
                     const total = getNumCars(record)
                     return defaultTextRenderer(` (${total})`, true);
                 }
+
+                return <>
+                    {defaultTextRenderer(record.name)}
+                    {groupDetails(record)}
+                </>
+            },
+            sorter: (a, b, sortOrder) => defaultTextSorter(a.name, b.name, sortOrder),
+            defaultSortOrder: 'ascend',
+            width: 420,
+            ellipsis: true
+        },
+        {
+            key: 'action',
+            width: isList() ? 56 : 121,
+            fixed: true,
+            render: (_value, record) => {
                 function imagePanel(images: string[]) {
                     return <Image.PreviewGroup
                         preview={{
@@ -363,23 +379,23 @@ export function AllCarsList(allCarListProps: AllCarListProps) {
                         <Popover content={imagePanel(images)} trigger="click">
                             <Button type='link' icon={<EyeOutlined />} />
                         </Popover>
-                        {' '}
                     </>
                 }
-
+                function urlIcon(url: string | null | undefined) {
+                    if (url == null) {
+                        return null
+                    }
+                    return <>
+                        <Button type='link' href={url} target="_blank" icon={<LinkOutlined />} />
+                    </>
+                }
                 return <>
-                    {(
-                        record.url == null ? '' : <a href={record.url} target="_blank" rel="noopener noreferrer"><LinkOutlined /> </a>
-                    )}
-                    {imagesPreview(record.imageUrls ?? [])}
-                    {defaultTextRenderer(record.name)}
-                    {groupDetails(record)}
+                    <Flex>
+                        {urlIcon(record.url)}
+                        {imagesPreview(record.imageUrls ?? [])}
+                    </Flex>
                 </>
-            },
-            sorter: (a, b, sortOrder) => defaultTextSorter(a.name, b.name, sortOrder),
-            defaultSortOrder: 'ascend',
-            width: 420,
-            ellipsis: true
+            }
         },
         {
             title: 'City',
@@ -567,6 +583,7 @@ export function AllCarsList(allCarListProps: AllCarListProps) {
                     scroll={{ x: '100%', y: '100%' }}
                     showSorterTooltip={false}
                     pagination={false}
+                    size='small'
                 />
             </ConfigProvider>
         </Flex>
