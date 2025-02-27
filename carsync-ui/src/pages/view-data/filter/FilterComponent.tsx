@@ -170,6 +170,7 @@ export function FilterSortComponent(filterProps: FilterProps) {
     useEffect(() => {
         if (isFilterApplied) {
             setFilterActiveKey([])
+            setSelectedFilter('Sort')
         }
     }, [isFilterApplied])
 
@@ -297,7 +298,6 @@ export function FilterSortComponent(filterProps: FilterProps) {
         setCarFilterValues(carFilterValues)
     }
 
-    //TODO: Populate the filter
     function createFilter(): void {
         const filter: CarFilter = {};
 
