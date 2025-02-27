@@ -359,7 +359,7 @@ export function AllCarsList(allCarListProps: AllCarListProps) {
         },
         {
             key: 'action',
-            width: isList() ? 56 : 121,
+            width: 56,
             fixed: true,
             render: (_value, record) => {
                 function imagePanel(images: string[]) {
@@ -408,6 +408,7 @@ export function AllCarsList(allCarListProps: AllCarListProps) {
         {
             title: 'Year',
             key: 'year',
+            align: 'center',
             render: (_value, record) => {
                 return defaultRangeRenderer(record.year)
             },
@@ -417,6 +418,7 @@ export function AllCarsList(allCarListProps: AllCarListProps) {
         {
             title: 'Price',
             key: 'price',
+            align: 'center',
             render: (_value, record) => {
                 return defaultRangeRenderer(record.price, true)
             },
@@ -426,6 +428,7 @@ export function AllCarsList(allCarListProps: AllCarListProps) {
         {
             title: 'Mileage',
             key: 'mileage',
+            align: 'center',
             render: (_value, record) => {
                 return defaultRangeRenderer(record.mileage, true)
             },
@@ -435,6 +438,7 @@ export function AllCarsList(allCarListProps: AllCarListProps) {
         {
             title: 'Power',
             key: 'power',
+            align: 'center',
             render: (_value, record) => {
                 return defaultRangeRenderer(record.power)
             },
@@ -444,6 +448,7 @@ export function AllCarsList(allCarListProps: AllCarListProps) {
         {
             title: 'Torque',
             key: 'torque',
+            align: 'center',
             render: (_value, record) => {
                 return defaultRangeRenderer(record.torque)
             },
@@ -453,6 +458,7 @@ export function AllCarsList(allCarListProps: AllCarListProps) {
         {
             title: 'Displacement',
             key: 'displacement',
+            align: 'center',
             render: (_value, record) => {
                 return defaultRangeRenderer(record.displacement)
             },
@@ -462,6 +468,7 @@ export function AllCarsList(allCarListProps: AllCarListProps) {
         {
             title: 'Length',
             key: 'length',
+            align: 'center',
             render: (_value, record) => {
                 return defaultRangeRenderer(record.length)
             },
@@ -471,6 +478,7 @@ export function AllCarsList(allCarListProps: AllCarListProps) {
         {
             title: 'Width',
             key: 'width',
+            align: 'center',
             render: (_value, record) => {
                 return defaultRangeRenderer(record.width)
             },
@@ -480,6 +488,7 @@ export function AllCarsList(allCarListProps: AllCarListProps) {
         {
             title: 'Height',
             key: 'height',
+            align: 'center',
             render: (_value, record) => {
                 return defaultRangeRenderer(record.height)
             },
@@ -489,6 +498,7 @@ export function AllCarsList(allCarListProps: AllCarListProps) {
         {
             title: 'Wheelbase',
             key: 'wheelbase',
+            align: 'center',
             render: (_value, record) => {
                 return defaultRangeRenderer(record.wheelbase)
             },
