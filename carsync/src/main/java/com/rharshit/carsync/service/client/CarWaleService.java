@@ -12,12 +12,14 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import org.springframework.web.client.RestClient;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.function.Consumer;
 
 import static com.rharshit.carsync.common.Constants.CLIENT_ID_CARWALE;
 import static com.rharshit.carsync.common.Constants.CLIENT_NAME_CARWALE;
@@ -62,6 +64,42 @@ public class CarWaleService extends ClientService<CarWaleCarModel> {
     protected void fixAllCars() {
         log.info("Fixing all cars from CarWale");
         addCityDetails();
+    }
+
+    @Override
+    protected void cleanupData() {
+        long startTime = System.currentTimeMillis();
+        List<CarModel> allCars = carModelRepository.findAllCarsByClient(getClientId()).toList();
+        log.info("Starting to scan {} objects", allCars.size());
+        try (ExecutorService cleanupExecutor = Executors.newFixedThreadPool(100)) {
+            cleanupCount = allCars.size();
+            allCars.forEach(carModel -> cleanupExecutor.execute(() -> pruneIfInvalid(carModel)));
+
+            Utils.awaitShutdownExecutorService(cleanupExecutor);
+            cleanupCount = 0;
+            log.info("Cleanup executor shutdown");
+            log.info("Cleanup data from {} completed. Scanned {} objects in {}ms", getClientName(), allCars.size(), System.currentTimeMillis() - startTime);
+        }
+    }
+
+    private void pruneIfInvalid(CarModel carModel) {
+        long startTime = System.currentTimeMillis();
+        boolean valid;
+        try {
+            String response = RestClient.builder().build().get().uri(carModel.getUrl()).retrieve().body(String.class);
+            valid = response != null && !response.trim().isEmpty();
+        } catch (Exception e) {
+            valid = false;
+        }
+        if (!valid) {
+            log.trace("Adding car {} to prune list", carModel.getId());
+            deleteCar(carModel);
+        }
+        cleanupCount--;
+        if (cleanupCount % 100 == 0) {
+            log.info("{} cars to be checked for cleanup", cleanupCount);
+        }
+        log.trace("Took {}ms to validate {}", System.currentTimeMillis() - startTime, carModel.getId());
     }
 
     private String getCityFromUrl(String url) {

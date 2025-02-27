@@ -23,4 +23,9 @@ public class ClientController {
     public String startFixing(@PathVariable String client) {
         return carService.startFixing(client);
     }
+
+    @PostMapping("/{client}/cleanup")
+    public String startCleanup(@PathVariable String client) {
+        return carService.startCleanup(client);
+    }
 }

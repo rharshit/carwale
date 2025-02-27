@@ -5,6 +5,7 @@ import com.rharshit.carsync.model.ClientCarModel;
 import com.rharshit.carsync.model.MakeModel;
 import com.rharshit.carsync.repository.CarModelRepository;
 import com.rharshit.carsync.repository.MakeModelRepository;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
@@ -15,6 +16,7 @@ import org.springframework.web.client.RestClient;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Function;
 
 @Slf4j
 @Service
@@ -28,9 +30,15 @@ public abstract class ClientService<T extends ClientCarModel> {
 
     protected final List<CarModel> carPushList = Collections.synchronizedList(new ArrayList<>());
 
+    protected final List<CarModel> carDeleteList = Collections.synchronizedList(new ArrayList<>());
+
     private Thread fetchThread;
 
     private Thread fixThread;
+
+    private Thread cleanupThread;
+
+    protected int cleanupCount;
 
     private RestClient restClient;
 
@@ -44,7 +52,10 @@ public abstract class ClientService<T extends ClientCarModel> {
 
     protected abstract void fixAllCars();
 
+    protected abstract void cleanupData();
+
     protected final List<CarModel> carStagingList = Collections.synchronizedList(new ArrayList<>());
+    protected final List<CarModel> carPruningList = Collections.synchronizedList(new ArrayList<>());
 
     private static final List<CarModel> carCheckList = Collections.synchronizedList(new ArrayList<>());
     private static final List<CarModel> carExistList = Collections.synchronizedList(new ArrayList<>());
@@ -157,6 +168,59 @@ public abstract class ClientService<T extends ClientCarModel> {
                 }
             }
             log.info("pushCarsToDB : Pushed {} cars to DB in {}ms", carsToPush.size(), System.currentTimeMillis() - startTime);
+        }
+    }
+
+    protected <C extends CarModel> void deleteCar(C clientCarModel) {
+        synchronized (carDeleteList) {
+            carDeleteList.add(clientCarModel);
+        }
+    }
+
+    @SneakyThrows
+    @Scheduled(fixedDelay = 10)
+    public void carsToPrune() {
+        if(carDeleteList.isEmpty()) {
+            Thread.sleep(500);
+        } else {
+            synchronized (carDeleteList) {
+                synchronized (carPruningList) {
+                    carPruningList.addAll(carDeleteList);
+                    carDeleteList.clear();
+                }
+            }
+        }
+    }
+
+    @SneakyThrows
+    @Scheduled(fixedDelay = 1)
+    public void pruneCars() {
+        List<CarModel> carsToPrune;
+        synchronized (carPruningList) {
+            carsToPrune = new ArrayList<>(carPruningList);
+            carPruningList.clear();
+        }
+        if(carsToPrune.isEmpty()) {
+            Thread.sleep(100);
+        } else {
+            long startTime = System.currentTimeMillis();
+            log.info("pruneCars : Pruning {} cars from DB", carsToPrune.size());
+            boolean pruned = false;
+            try {
+                carModelRepository.deleteAllById(carsToPrune.stream().map(CarModel::getId).toList());
+                pruned = true;
+            } catch (Exception e) {
+                pruned = false;
+            } finally {
+                if (!pruned) {
+                    log.warn("Pruning cars to from failed. Pushing back to pruning list.");
+                    synchronized (carPruningList) {
+                        carPruningList.addAll(carsToPrune);
+                    }
+                } else {
+                    log.info("pruneCars : Pruned {} cars from DB in {}ms", carsToPrune.size(), System.currentTimeMillis() - startTime);
+                }
+            }
         }
     }
 
@@ -306,6 +370,27 @@ public abstract class ClientService<T extends ClientCarModel> {
             return "Started fixing cars from " + getClientName();
         } else {
             return "Already fixing cars from " + getClientName();
+        }
+    }
+
+    public String startCleanupThread() {
+        log.info("Starting to cleanup data from {}", getClientName());
+        if (cleanupThread == null || !cleanupThread.isAlive()) {
+            cleanupThread = new Thread(() -> {
+                try {
+                    log.info("Cleaning up data from {}", getClientName());
+                    long startTime = System.currentTimeMillis();
+                    cleanupData();
+                    log.info("Cleaned up data from {} in {}ms", getClientName(), System.currentTimeMillis() - startTime);
+                } catch (Exception e) {
+                    log.error("Error cleaning up data for {}", getClientName(), e);
+                }
+            });
+            cleanupThread.setName("cleanupThread-" + getClientId());
+            cleanupThread.start();
+            return "Started cleaning up data from " + getClientName();
+        } else {
+            return "Already cleaning up data from " + getClientName();
         }
     }
 }
