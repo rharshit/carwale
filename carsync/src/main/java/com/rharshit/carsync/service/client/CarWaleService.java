@@ -15,12 +15,10 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestClient;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.function.Consumer;
 
 import static com.rharshit.carsync.common.Constants.CLIENT_ID_CARWALE;
 import static com.rharshit.carsync.common.Constants.CLIENT_NAME_CARWALE;
@@ -160,7 +158,7 @@ public class CarWaleService extends ClientService<CarWaleCarModel> {
 
     //TODO: Implement dynamic limit
     private List<Integer> getCityList() {
-        CityListResponse cityListResponse = getRestClient().post().uri("/api/used-search/filters/")
+        CityListResponse cityListResponse = RestClient.builder().baseUrl(getClientDomain()).build().post().uri("/api/used-search/filters/")
                 .contentType(APPLICATION_JSON).body("{}")
                 .retrieve().body(CityListResponse.class);
         if (cityListResponse == null || cityListResponse.city == null) {
@@ -173,7 +171,7 @@ public class CarWaleService extends ClientService<CarWaleCarModel> {
         List<AllCarResponse.Stock> currentStocks;
         int total;
         int fetched;
-        AllCarResponse response = getRestClient().post().uri("/api/stocks/filters/")
+        AllCarResponse response = RestClient.builder().baseUrl(getClientDomain()).build().post().uri("/api/stocks/filters/")
                 .contentType(APPLICATION_JSON).body("{\"pn\":\"1\",\"city\":\"" + city + "\",\"ps\":\"24\",\"sc\":\"-1\",\"so\":\"-1\",\"lcr\":\"24\",\"shouldfetchnearbycars\":\"False\"}")
                 .retrieve().body(AllCarResponse.class);
         assert response != null;
@@ -184,7 +182,7 @@ public class CarWaleService extends ClientService<CarWaleCarModel> {
         fetched = stocks.size();
         while (!response.stocks.isEmpty() && response.nextPageUrl != null) {
             log.trace("{}% : Fetched {} cars out of {} from CarWale", (int) getPercentage(total, fetched), fetched, total);
-            response = getRestClient().get().uri(response.nextPageUrl)
+            response = RestClient.builder().baseUrl(getClientDomain()).build().get().uri(response.nextPageUrl)
                     .retrieve().body(AllCarResponse.class);
             assert response != null;
             total = response.totalCount;
@@ -206,20 +204,25 @@ public class CarWaleService extends ClientService<CarWaleCarModel> {
     private void fetchStockDetails(AllCarResponse.Stock stock, ExecutorService fetchExecutor) {
         log.trace("Fetching details for car : {} {} {}", stock.makeName, stock.modelName, stock.versionName);
         CarWaleCarModel carModel = new CarWaleCarModel(stock.profileId);
-        populateCarModel(stock, carModel);
-
-        boolean fetched = isCarDetailFetched(carModel.getClientId());
-        if (fetched) {
+        CarModel fetchedCar = fetchCarDetailsFromDb(carModel.getClientId());
+        if (fetchedCar != null) {
             log.trace("Details already fetched for car : {} {} {}", carModel.getMake(), carModel.getModel(), carModel.getVariant());
+            if ((fetchedCar.getImageUrls() == null || fetchedCar.getImageUrls().isEmpty()) &&
+                    stock.stockImages != null && !stock.stockImages.isEmpty()) {
+                fetchedCar.setImageUrls(stock.stockImages);
+                pushCar(fetchedCar);
+            }
+
             return;
         }
+        populateCarModel(stock, carModel);
         fetchExecutor.execute(() -> fetchStockDetails(carModel, stock.url));
     }
 
     private void fetchStockDetails(CarWaleCarModel carModel, String url) {
         try {
             long startTime = System.currentTimeMillis();
-            String response = getRestClient().get().uri(url).retrieve().body(String.class);
+            String response = RestClient.builder().baseUrl(getClientDomain()).build().get().uri(url).retrieve().body(String.class);
             if (response == null) {
                 return;
             }

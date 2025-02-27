@@ -60,6 +60,15 @@ public class CarModel {
         return Objects.hash(id, client, clientId, make, model, variant, year, url);
     }
 
+    /*
+    Update created at field only if it does not already exist
+     */
+    public void setCreatedAt(@NonNull Long createdAt) {
+        if (this.createdAt == null || this.createdAt == 0) {
+            this.createdAt = createdAt;
+        }
+    }
+
     @Data
     @NoArgsConstructor
     public static class Specs {
