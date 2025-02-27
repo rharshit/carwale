@@ -41,6 +41,12 @@ public class CarModel {
     private List<String> imageUrls;
     @NonNull
     private Specs specs = new Specs();
+    @NonNull
+    private Long createdAt;
+    @NonNull
+    private Long updatedAt;
+    @NonNull
+    private Long validatedAt;
 
     @Override
     public boolean equals(Object o) {
@@ -85,5 +91,10 @@ public class CarModel {
         private Integer bootSpace;
         @Nullable
         private String drivetrain;
+    }
+
+    public CarModel generateCarModel() {
+        return new CarModel(getId(), getClient(), getClientId(), getCity(), getMake(), getModel(), getVariant(), getYear(),
+                getPrice(), getMileage(), getUrl(), getImageUrls(), getSpecs(), getCreatedAt(), getUpdatedAt(), getValidatedAt());
     }
 }

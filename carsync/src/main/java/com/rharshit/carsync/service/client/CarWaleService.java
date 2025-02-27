@@ -15,6 +15,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestClient;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
@@ -69,7 +70,17 @@ public class CarWaleService extends ClientService<CarWaleCarModel> {
     @Override
     protected void cleanupData() {
         long startTime = System.currentTimeMillis();
-        List<CarModel> allCars = carModelRepository.findAllCarsByClient(getClientId()).toList();
+        log.info("Getting data to scan for {}", getClientName());
+        List<CarModel> allCars = new ArrayList<>(carModelRepository.findAllCarsByClient(getClientId()).toList());
+        allCars.sort((o1, o2) -> {
+            if (o1.getValidatedAt() == null || o1.getValidatedAt() == 0) {
+                return -1;
+            } else if (o2.getValidatedAt() == null || o2.getValidatedAt() == 0) {
+                return 1;
+            } else {
+                return o1.getValidatedAt().compareTo(o2.getValidatedAt());
+            }
+        });
         log.info("Starting to scan {} objects", allCars.size());
         try (ExecutorService cleanupExecutor = Executors.newFixedThreadPool(100)) {
             cleanupCount = allCars.size();
@@ -94,6 +105,10 @@ public class CarWaleService extends ClientService<CarWaleCarModel> {
         if (!valid) {
             log.trace("Adding car {} to prune list", carModel.getId());
             deleteCar(carModel);
+        } else {
+            log.trace("Adding car {} to push list", carModel.getId());
+            carModel.setValidatedAt(System.currentTimeMillis());
+            pushCar(carModel);
         }
         cleanupCount--;
         if (cleanupCount % 100 == 0) {
@@ -126,6 +141,7 @@ public class CarWaleService extends ClientService<CarWaleCarModel> {
         log.info("Got {} cars to fix", totalSize);
         fixedCars.forEach(carModel -> {
             carModel.setCity(getCityFromUrl(carModel.getUrl()));
+            carModel.setUpdatedAt(System.currentTimeMillis());
         });
         while (!fixedCars.isEmpty()) {
             List<CarModel> toPush = fixedCars.stream().limit(pushSize).toList();
@@ -239,6 +255,9 @@ public class CarWaleService extends ClientService<CarWaleCarModel> {
         carModel.setMileage(Integer.parseInt(stock.kmNumeric));
         carModel.setImageUrls(stock.stockImages);
         carModel.setUrl(getClientDomain() + stock.url);
+        carModel.setCreatedAt(System.currentTimeMillis());
+        carModel.setUpdatedAt(System.currentTimeMillis());
+        carModel.setValidatedAt(System.currentTimeMillis());
     }
 
     private void updateSpecs(CarModel.Specs carSpecs, List<String> webSpecs) {

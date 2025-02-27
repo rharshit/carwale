@@ -101,10 +101,9 @@ public abstract class ClientService<T extends ClientCarModel> {
     /**
      * Push car to staging list
      *
-     * @param clientCarModel
+     * @param carModel
      */
-    protected void pushCar(T clientCarModel) {
-        CarModel carModel = clientCarModel.generateCarModel();
+    protected <C extends CarModel> void pushCar(C carModel) {
         synchronized (carPushList) {
             carPushList.add(carModel);
         }
@@ -115,18 +114,23 @@ public abstract class ClientService<T extends ClientCarModel> {
      *
      * @param carModels
      */
-    protected void pushCars(List<CarModel> carModels) {
+    protected <C extends CarModel> void pushCars(List<C> carModels) {
         synchronized (carPushList) {
             carPushList.addAll(carModels);
         }
     }
 
-    @Scheduled(fixedRate = 1000)
+    @SneakyThrows
+    @Scheduled(fixedDelay = 1)
     public void pushCarsToStaging() {
-        synchronized (carPushList) {
-            synchronized (carStagingList) {
-                carStagingList.addAll(carPushList);
-                carPushList.clear();
+        if(carPushList.isEmpty()) {
+            Thread.sleep(500);
+        } else {
+            synchronized (carPushList) {
+                synchronized (carStagingList) {
+                    carStagingList.addAll(carPushList);
+                    carPushList.clear();
+                }
             }
         }
     }
@@ -178,7 +182,7 @@ public abstract class ClientService<T extends ClientCarModel> {
     }
 
     @SneakyThrows
-    @Scheduled(fixedDelay = 10)
+    @Scheduled(fixedDelay = 1)
     public void carsToPrune() {
         if(carDeleteList.isEmpty()) {
             Thread.sleep(500);
