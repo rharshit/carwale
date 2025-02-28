@@ -69,6 +69,21 @@ public class CarModel {
         }
     }
 
+    @NonNull
+    public Long getCreatedAt() {
+        return createdAt == null ? 0 : createdAt;
+    }
+
+    @NonNull
+    public Long getUpdatedAt() {
+        return updatedAt == null ? 0 : updatedAt;
+    }
+
+    @NonNull
+    public Long getValidatedAt() {
+        return validatedAt == null ? 0 : validatedAt;
+    }
+
     @Data
     @NoArgsConstructor
     public static class Specs {
@@ -104,6 +119,9 @@ public class CarModel {
 
     public CarModel generateCarModel() {
         return new CarModel(getId(), getClient(), getClientId(), getCity(), getMake(), getModel(), getVariant(), getYear(),
-                getPrice(), getMileage(), getUrl(), getImageUrls(), getSpecs(), getCreatedAt(), getUpdatedAt(), getValidatedAt());
+                getPrice(), getMileage(), getUrl(), getImageUrls(), getSpecs(),
+                getCreatedAt() == null ? getCreatedAt() : 0,
+                getUpdatedAt() == null ? getUpdatedAt() : System.currentTimeMillis(),
+                getValidatedAt() == null ? getValidatedAt() : System.currentTimeMillis());
     }
 }
