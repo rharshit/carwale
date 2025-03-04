@@ -8,6 +8,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -38,7 +39,7 @@ public class CarModel {
     @NonNull
     private String url;
     @NonNull
-    private List<String> imageUrls;
+    private List<String> imageUrls = new ArrayList<>();
     @NonNull
     private Specs specs = new Specs();
     @NonNull
@@ -67,6 +68,21 @@ public class CarModel {
         if (this.createdAt == null || this.createdAt == 0) {
             this.createdAt = createdAt;
         }
+    }
+
+    @NonNull
+    public Long getCreatedAt() {
+        return createdAt == null ? 0 : createdAt;
+    }
+
+    @NonNull
+    public Long getUpdatedAt() {
+        return updatedAt == null ? 0 : updatedAt;
+    }
+
+    @NonNull
+    public Long getValidatedAt() {
+        return validatedAt == null ? 0 : validatedAt;
     }
 
     @Data
@@ -104,6 +120,9 @@ public class CarModel {
 
     public CarModel generateCarModel() {
         return new CarModel(getId(), getClient(), getClientId(), getCity(), getMake(), getModel(), getVariant(), getYear(),
-                getPrice(), getMileage(), getUrl(), getImageUrls(), getSpecs(), getCreatedAt(), getUpdatedAt(), getValidatedAt());
+                getPrice(), getMileage(), getUrl(), getImageUrls(), getSpecs(),
+                getCreatedAt() == null ? getCreatedAt() : 0,
+                getUpdatedAt() == null ? getUpdatedAt() : System.currentTimeMillis(),
+                getValidatedAt() == null ? getValidatedAt() : System.currentTimeMillis());
     }
 }

@@ -3,6 +3,7 @@ import {
     EyeOutlined,
     GroupOutlined,
     LinkOutlined,
+    TableOutlined,
     UngroupOutlined,
 } from '@ant-design/icons';
 import { Button, ConfigProvider, Flex, Image, Input, Popover, Radio, RadioChangeEvent, Table, TableColumnsType, Tag, theme, Tooltip, Typography } from "antd";
@@ -55,6 +56,7 @@ export function AllCarsList(allCarListProps: AllCarListProps) {
     const [filteredCarsTree, setFilteredCarsTree] = useState<TableCarData[]>([])
     const [nameFilter, setNameFilter] = useState<string>('')
     const [isAscend, setAscend] = useState<boolean>(true)
+    const [showColumnSelector, setShowColumnSelector] = useState<boolean>(false)
 
     const isList = (): boolean => {
         return listView == 'list';
@@ -524,22 +526,31 @@ export function AllCarsList(allCarListProps: AllCarListProps) {
     return <>
         <Flex vertical>
             <Flex align='center' justify='space-between' style={{ padding: '8px 0 8px 0' }}>
-                <Input
-                    placeholder={`Search ${allCars.length} cars`}
-                    style={{ width: '25%' }}
-                    value={nameFilter}
-                    onChange={e => { setNameFilter(e.target.value) }}
-                    allowClear />
-                <Flex wrap align="center">
-                    {allSelectableColumnKeys.map<React.ReactNode>((columnKey) => (
-                        <Tag.CheckableTag
-                            key={columnKey}
-                            checked={selectedColumnKeys.includes(columnKey)}
-                            onChange={(checked) => handleColumnChange(columnKey, checked)}
+                <Flex gap='large'>
+                    <Input
+                        placeholder={`Search ${allCars.length} cars`}
+                        style={{ width: 250 }}
+                        value={nameFilter}
+                        onChange={e => { setNameFilter(e.target.value) }}
+                        allowClear />
+                    <Flex wrap align="center">
+                        <Tag
+                            icon={<TableOutlined />}
+                            color={showColumnSelector ? "processing" : "default"}
+                            onClick={() => setShowColumnSelector(!showColumnSelector)}
                         >
-                            {capitalize(columnKey.toLocaleString())}
-                        </Tag.CheckableTag>
-                    ))}
+                            Columns
+                        </Tag>
+                        {showColumnSelector && allSelectableColumnKeys.map<React.ReactNode>((columnKey) => (
+                            <Tag.CheckableTag
+                                key={columnKey}
+                                checked={selectedColumnKeys.includes(columnKey)}
+                                onChange={(checked) => handleColumnChange(columnKey, checked)}
+                            >
+                                {capitalize(columnKey.toLocaleString())}
+                            </Tag.CheckableTag>
+                        ))}
+                    </Flex>
                 </Flex>
                 <Radio.Group
                     onChange={onChangeListView}

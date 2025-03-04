@@ -167,8 +167,6 @@ function MainLayout(mainLayoutProps: MainLayoutProps) {
                         trigger={null}
                         collapsible
                         collapsed={collapsedSidebar}
-                        onMouseEnter={() => { setCollapsedSideBar(false) }}
-                        onMouseLeave={() => { setCollapsedSideBar(true) }}
                         style={{
                             backgroundColor: 'white',
                             margin: 0,
@@ -207,6 +205,8 @@ function MainLayout(mainLayoutProps: MainLayoutProps) {
                                 openKeys={!collapsedSidebar ? openKeys : []}
                                 onOpenChange={onOpenChange}
                                 onSelect={({ key }) => updateSelectedKeys([key], false)}
+                                onMouseEnter={() => { setCollapsedSideBar(false) }}
+                                onMouseLeave={() => { setCollapsedSideBar(true) }}
                                 style={{
                                     padding: '16px 0px 16px 0px',
                                     border: 0,

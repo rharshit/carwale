@@ -82,7 +82,7 @@ export function FilterSortComponent(filterProps: FilterProps) {
 
     const [isAnyFilterEnabled, setAnyFiltereEnabled] = useState<boolean>(false)
 
-    const [filterActiveKey, setFilterActiveKey] = useState<string[]>([])
+    const [filterCollapseActiveKey, setFilterCollapseActiveKey] = useState<string[]>([])
 
     const filterOptions: SegmentedOptions<valueType> = [
         {
@@ -169,7 +169,8 @@ export function FilterSortComponent(filterProps: FilterProps) {
 
     useEffect(() => {
         if (isFilterApplied) {
-            setFilterActiveKey([])
+            setFilterCollapseActiveKey([])
+            setSelectedFilter('Sort')
         }
     }, [isFilterApplied])
 
@@ -297,7 +298,6 @@ export function FilterSortComponent(filterProps: FilterProps) {
         setCarFilterValues(carFilterValues)
     }
 
-    //TODO: Populate the filter
     function createFilter(): void {
         const filter: CarFilter = {};
 
@@ -365,8 +365,8 @@ export function FilterSortComponent(filterProps: FilterProps) {
                         }}>
                         <Collapse
                             ghost
-                            onChange={setFilterActiveKey}
-                            activeKey={filterActiveKey}
+                            onChange={setFilterCollapseActiveKey}
+                            activeKey={filterCollapseActiveKey}
                             items={[{
                                 key: '1',
                                 label: 'Filters',
@@ -382,152 +382,154 @@ export function FilterSortComponent(filterProps: FilterProps) {
                                                 scrollbarWidth: 'none',
                                             }}
                                         />
-                                        <Flex style={{ padding: 0 }}>
-                                            {
-                                                selectedFilter == 'Sort' && <SortOptions />
-                                            }
-                                            {
-                                                selectedFilter == 'City' && <CityFilter
-                                                    allCities={carFilterValues?.cities ?? []}
-                                                    isCityFilterEnabled={isCityFilterEnabled}
-                                                    setCityFilterEnabled={setCityFilterEnabled}
-                                                    selectedCities={selectedCities}
-                                                    setSelectedCities={setSelectedCities}
-                                                />
-                                            }
-                                            {
-                                                selectedFilter == 'Car' && <CarFilterComponent
-                                                    allMakeModels={allMakeModels}
-                                                    selectedCars={selectedCars}
-                                                    setSelectedCars={setSelectedCars}
-                                                />
-                                            }
-                                            {
-                                                selectedFilter == 'Year' && <SliderFilter
-                                                    name={selectedFilter}
-                                                    isFilterEnabled={isYearFilterEnabled}
-                                                    setFilterEnabled={setYearFilterEnabled}
-                                                    lowerLimit={carFilterValues?.minYear ?? 0}
-                                                    minValue={minYear}
-                                                    setMinValue={setMinYear}
-                                                    higherLimit={carFilterValues?.maxYear ?? 0}
-                                                    maxValue={maxYear}
-                                                    setMaxValue={setMaxYear}
-                                                />
-                                            }
-                                            {
-                                                selectedFilter == 'Price' && <SliderFilter
-                                                    name={selectedFilter}
-                                                    unit="₹"
-                                                    isFilterEnabled={isPriceFilterEnabled}
-                                                    setFilterEnabled={setPriceFilterEnabled}
-                                                    lowerLimit={carFilterValues?.minPrice ?? 0}
-                                                    minValue={minPrice}
-                                                    setMinValue={setMinPrice}
-                                                    higherLimit={carFilterValues?.maxPrice ?? 0}
-                                                    maxValue={maxPrice}
-                                                    setMaxValue={setMaxPrice}
-                                                />
-                                            }
-                                            {
-                                                selectedFilter == 'Mileage' && <SliderFilter
-                                                    name={selectedFilter}
-                                                    unit="km"
-                                                    isFilterEnabled={isMileageFilterEnabled}
-                                                    setFilterEnabled={setMileageFilterEnabled}
-                                                    lowerLimit={carFilterValues?.minMileage ?? 0}
-                                                    minValue={minMileage}
-                                                    setMinValue={setMinMileage}
-                                                    higherLimit={carFilterValues?.maxMileage ?? 0}
-                                                    maxValue={maxMileage}
-                                                    setMaxValue={setMaxMileage}
-                                                />
-                                            }
-                                            {
-                                                selectedFilter == 'Power' && <SliderFilter
-                                                    name={selectedFilter}
-                                                    unit="bhp"
-                                                    isFilterEnabled={isPowerFilterEnabled}
-                                                    setFilterEnabled={setPowerFilterEnabled}
-                                                    lowerLimit={carFilterValues?.minPower ?? 0}
-                                                    minValue={minPower}
-                                                    setMinValue={setMinPower}
-                                                    higherLimit={carFilterValues?.maxPower ?? 0}
-                                                    maxValue={maxPower}
-                                                    setMaxValue={setMaxPower}
-                                                />
-                                            }
-                                            {
-                                                selectedFilter == 'Torque' && <SliderFilter
-                                                    name={selectedFilter}
-                                                    unit="nm"
-                                                    isFilterEnabled={isTorqueFilterEnabled}
-                                                    setFilterEnabled={setTorqueFilterEnabled}
-                                                    lowerLimit={carFilterValues?.minTorque ?? 0}
-                                                    minValue={minTorque}
-                                                    setMinValue={setMinTorque}
-                                                    higherLimit={carFilterValues?.maxTorque ?? 0}
-                                                    maxValue={maxTorque}
-                                                    setMaxValue={setMaxTorque}
-                                                />
-                                            }
-                                            {
-                                                selectedFilter == 'Length' && <SliderFilter
-                                                    name={selectedFilter}
-                                                    unit="mm"
-                                                    isFilterEnabled={isLengthFilterEnabled}
-                                                    setFilterEnabled={setLengthFilterEnabled}
-                                                    lowerLimit={carFilterValues?.minLength ?? 0}
-                                                    minValue={minLength}
-                                                    setMinValue={setMinLength}
-                                                    higherLimit={carFilterValues?.maxLength ?? 0}
-                                                    maxValue={maxLength}
-                                                    setMaxValue={setMaxLength}
-                                                />
-                                            }
-                                            {
-                                                selectedFilter == 'Width' && <SliderFilter
-                                                    name={selectedFilter}
-                                                    unit="mm"
-                                                    isFilterEnabled={isWidthFilterEnabled}
-                                                    setFilterEnabled={setWidthFilterEnabled}
-                                                    lowerLimit={carFilterValues?.minWidth ?? 0}
-                                                    minValue={minWidth}
-                                                    setMinValue={setMinWidth}
-                                                    higherLimit={carFilterValues?.maxWidth ?? 0}
-                                                    maxValue={maxWidth}
-                                                    setMaxValue={setMaxWidth}
-                                                />
-                                            }
-                                            {
-                                                selectedFilter == 'Height' && <SliderFilter
-                                                    name={selectedFilter}
-                                                    unit="mm"
-                                                    isFilterEnabled={isHeightFilterEnabled}
-                                                    setFilterEnabled={setHeightFilterEnabled}
-                                                    lowerLimit={carFilterValues?.minHeight ?? 0}
-                                                    minValue={minHeight}
-                                                    setMinValue={setMinHeight}
-                                                    higherLimit={carFilterValues?.maxHeight ?? 0}
-                                                    maxValue={maxHeight}
-                                                    setMaxValue={setMaxHeight}
-                                                />
-                                            }
-                                            {
-                                                selectedFilter == 'Wheelbase' && <SliderFilter
-                                                    name={selectedFilter}
-                                                    unit="mm"
-                                                    isFilterEnabled={isWheelbaseFilterEnabled}
-                                                    setFilterEnabled={setWheelbaseFilterEnabled}
-                                                    lowerLimit={carFilterValues?.minWheelbase ?? 0}
-                                                    minValue={minWheelbase}
-                                                    setMinValue={setMinWheelbase}
-                                                    higherLimit={carFilterValues?.maxWheelbase ?? 0}
-                                                    maxValue={maxWheelbase}
-                                                    setMaxValue={setMaxWheelbase}
-                                                />
-                                            }
-                                        </Flex>
+                                        {filterCollapseActiveKey.length != 0 &&
+                                            <Flex style={{ padding: 0 }}>
+                                                {
+                                                    selectedFilter == 'Sort' && <SortOptions />
+                                                }
+                                                {
+                                                    selectedFilter == 'City' && <CityFilter
+                                                        allCities={carFilterValues?.cities ?? []}
+                                                        isCityFilterEnabled={isCityFilterEnabled}
+                                                        setCityFilterEnabled={setCityFilterEnabled}
+                                                        selectedCities={selectedCities}
+                                                        setSelectedCities={setSelectedCities}
+                                                    />
+                                                }
+                                                {
+                                                    selectedFilter == 'Car' && <CarFilterComponent
+                                                        allMakeModels={allMakeModels}
+                                                        selectedCars={selectedCars}
+                                                        setSelectedCars={setSelectedCars}
+                                                    />
+                                                }
+                                                {
+                                                    selectedFilter == 'Year' && <SliderFilter
+                                                        name={selectedFilter}
+                                                        isFilterEnabled={isYearFilterEnabled}
+                                                        setFilterEnabled={setYearFilterEnabled}
+                                                        lowerLimit={carFilterValues?.minYear ?? 0}
+                                                        minValue={minYear}
+                                                        setMinValue={setMinYear}
+                                                        higherLimit={carFilterValues?.maxYear ?? 0}
+                                                        maxValue={maxYear}
+                                                        setMaxValue={setMaxYear}
+                                                    />
+                                                }
+                                                {
+                                                    selectedFilter == 'Price' && <SliderFilter
+                                                        name={selectedFilter}
+                                                        unit="₹"
+                                                        isFilterEnabled={isPriceFilterEnabled}
+                                                        setFilterEnabled={setPriceFilterEnabled}
+                                                        lowerLimit={carFilterValues?.minPrice ?? 0}
+                                                        minValue={minPrice}
+                                                        setMinValue={setMinPrice}
+                                                        higherLimit={carFilterValues?.maxPrice ?? 0}
+                                                        maxValue={maxPrice}
+                                                        setMaxValue={setMaxPrice}
+                                                    />
+                                                }
+                                                {
+                                                    selectedFilter == 'Mileage' && <SliderFilter
+                                                        name={selectedFilter}
+                                                        unit="km"
+                                                        isFilterEnabled={isMileageFilterEnabled}
+                                                        setFilterEnabled={setMileageFilterEnabled}
+                                                        lowerLimit={carFilterValues?.minMileage ?? 0}
+                                                        minValue={minMileage}
+                                                        setMinValue={setMinMileage}
+                                                        higherLimit={carFilterValues?.maxMileage ?? 0}
+                                                        maxValue={maxMileage}
+                                                        setMaxValue={setMaxMileage}
+                                                    />
+                                                }
+                                                {
+                                                    selectedFilter == 'Power' && <SliderFilter
+                                                        name={selectedFilter}
+                                                        unit="bhp"
+                                                        isFilterEnabled={isPowerFilterEnabled}
+                                                        setFilterEnabled={setPowerFilterEnabled}
+                                                        lowerLimit={carFilterValues?.minPower ?? 0}
+                                                        minValue={minPower}
+                                                        setMinValue={setMinPower}
+                                                        higherLimit={carFilterValues?.maxPower ?? 0}
+                                                        maxValue={maxPower}
+                                                        setMaxValue={setMaxPower}
+                                                    />
+                                                }
+                                                {
+                                                    selectedFilter == 'Torque' && <SliderFilter
+                                                        name={selectedFilter}
+                                                        unit="nm"
+                                                        isFilterEnabled={isTorqueFilterEnabled}
+                                                        setFilterEnabled={setTorqueFilterEnabled}
+                                                        lowerLimit={carFilterValues?.minTorque ?? 0}
+                                                        minValue={minTorque}
+                                                        setMinValue={setMinTorque}
+                                                        higherLimit={carFilterValues?.maxTorque ?? 0}
+                                                        maxValue={maxTorque}
+                                                        setMaxValue={setMaxTorque}
+                                                    />
+                                                }
+                                                {
+                                                    selectedFilter == 'Length' && <SliderFilter
+                                                        name={selectedFilter}
+                                                        unit="mm"
+                                                        isFilterEnabled={isLengthFilterEnabled}
+                                                        setFilterEnabled={setLengthFilterEnabled}
+                                                        lowerLimit={carFilterValues?.minLength ?? 0}
+                                                        minValue={minLength}
+                                                        setMinValue={setMinLength}
+                                                        higherLimit={carFilterValues?.maxLength ?? 0}
+                                                        maxValue={maxLength}
+                                                        setMaxValue={setMaxLength}
+                                                    />
+                                                }
+                                                {
+                                                    selectedFilter == 'Width' && <SliderFilter
+                                                        name={selectedFilter}
+                                                        unit="mm"
+                                                        isFilterEnabled={isWidthFilterEnabled}
+                                                        setFilterEnabled={setWidthFilterEnabled}
+                                                        lowerLimit={carFilterValues?.minWidth ?? 0}
+                                                        minValue={minWidth}
+                                                        setMinValue={setMinWidth}
+                                                        higherLimit={carFilterValues?.maxWidth ?? 0}
+                                                        maxValue={maxWidth}
+                                                        setMaxValue={setMaxWidth}
+                                                    />
+                                                }
+                                                {
+                                                    selectedFilter == 'Height' && <SliderFilter
+                                                        name={selectedFilter}
+                                                        unit="mm"
+                                                        isFilterEnabled={isHeightFilterEnabled}
+                                                        setFilterEnabled={setHeightFilterEnabled}
+                                                        lowerLimit={carFilterValues?.minHeight ?? 0}
+                                                        minValue={minHeight}
+                                                        setMinValue={setMinHeight}
+                                                        higherLimit={carFilterValues?.maxHeight ?? 0}
+                                                        maxValue={maxHeight}
+                                                        setMaxValue={setMaxHeight}
+                                                    />
+                                                }
+                                                {
+                                                    selectedFilter == 'Wheelbase' && <SliderFilter
+                                                        name={selectedFilter}
+                                                        unit="mm"
+                                                        isFilterEnabled={isWheelbaseFilterEnabled}
+                                                        setFilterEnabled={setWheelbaseFilterEnabled}
+                                                        lowerLimit={carFilterValues?.minWheelbase ?? 0}
+                                                        minValue={minWheelbase}
+                                                        setMinValue={setMinWheelbase}
+                                                        higherLimit={carFilterValues?.maxWheelbase ?? 0}
+                                                        maxValue={maxWheelbase}
+                                                        setMaxValue={setMaxWheelbase}
+                                                    />
+                                                }
+                                            </Flex>
+                                        }
                                     </Flex>
                                 </>
                             }]} />

@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Function;
 
 @Slf4j
 @Service
@@ -131,7 +132,8 @@ public abstract class ClientService<T extends ClientCarModel> {
             carsToPush = new ArrayList<>(carStagingList);
             carStagingList.clear();
         }
-        if (carsToPush.isEmpty()) {
+        List<CarModel> carsToPushConverted = carsToPush.stream().map(CarModel::generateCarModel).toList();
+        if (carsToPushConverted.isEmpty()) {
             try {
                 Thread.sleep(1000);
             } catch (InterruptedException e) {
@@ -139,12 +141,12 @@ public abstract class ClientService<T extends ClientCarModel> {
             }
         } else {
             long startTime = System.currentTimeMillis();
-            log.info("pushCarsToDB : Pushing {} cars to DB", carsToPush.size());
+            log.info("pushCarsToDB : Pushing {} cars to DB", carsToPushConverted.size());
             boolean pushed = false;
             try {
-                List<CarModel> saved = carModelRepository.saveAll(carsToPush);
+                List<CarModel> saved = carModelRepository.saveAll(carsToPushConverted);
                 log.debug("pushCarsToDB : Saved {} cars to DB", saved.size());
-                pushed = saved.size() == carsToPush.size();
+                pushed = saved.size() == carsToPushConverted.size();
                 if (pushed) {
                     updateMakeModel(saved);
                 } else {
@@ -160,7 +162,7 @@ public abstract class ClientService<T extends ClientCarModel> {
                     }
                 }
             }
-            log.info("pushCarsToDB : Pushed {} cars to DB in {}ms", carsToPush.size(), System.currentTimeMillis() - startTime);
+            log.info("pushCarsToDB : Pushed {} cars to DB in {}ms", carsToPushConverted.size(), System.currentTimeMillis() - startTime);
         }
     }
 
