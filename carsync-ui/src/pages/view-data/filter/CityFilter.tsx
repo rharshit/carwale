@@ -55,7 +55,7 @@ export function CityFilter(cityFilterProps: CityFilterProps) {
             <Flex wrap style={{ maxHeight: 200, maxWidth: 690, overflow: 'scroll' }}>
                 {isCityFilterEnabled && <Tag
                     closeIcon
-                    onClose={e => setSelectedCities([])}
+                    onClose={() => setSelectedCities([])}
                     style={{ margin: 2 }}
                 >
                     Deselect all
