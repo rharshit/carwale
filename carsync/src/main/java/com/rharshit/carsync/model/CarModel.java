@@ -8,6 +8,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -38,7 +39,7 @@ public class CarModel {
     @NonNull
     private String url;
     @NonNull
-    private List<String> imageUrls;
+    private List<String> imageUrls = new ArrayList<>();
     @NonNull
     private Specs specs = new Specs();
     @NonNull
