@@ -6,8 +6,8 @@ import {
     TableOutlined,
     UngroupOutlined,
 } from '@ant-design/icons';
-import { Button, ConfigProvider, Flex, Image, Input, Popover, Radio, RadioChangeEvent, Table, TableColumnsType, Tag, theme, Tooltip, Typography } from "antd";
-import { SortOrder } from 'antd/es/table/interface';
+import { Button, ConfigProvider, Flex, Image, Input, Popover, Radio, RadioChangeEvent, Table, TableColumnsType, TableProps, Tag, theme, Tooltip, Typography } from "antd";
+import { FilterValue, SorterResult, SortOrder, TablePaginationConfig } from 'antd/es/table/interface';
 import { RenderedCell } from 'rc-table/lib/interface';
 import React, { Key, useEffect, useState } from "react";
 import { CarModel } from "../common/Types";
@@ -39,6 +39,9 @@ type TableCarData = {
     children?: TableCarData[]
 }
 
+type GetSingle<T> = T extends (infer U)[] ? U : never;
+type Sort = GetSingle<Parameters<NonNullable<TableProps<TableCarData>['onChange']>>[2]>;
+
 export function AllCarsList(allCarListProps: AllCarListProps) {
     const {
         allCars,
@@ -57,6 +60,8 @@ export function AllCarsList(allCarListProps: AllCarListProps) {
     const [nameFilter, setNameFilter] = useState<string>('')
     const [isAscend, setAscend] = useState<boolean>(true)
     const [showColumnSelector, setShowColumnSelector] = useState<boolean>(false)
+    const [sortedInfo, setSortedInfo] = useState<Sort>({});
+
 
     const isList = (): boolean => {
         return listView == 'list';
@@ -324,7 +329,7 @@ export function AllCarsList(allCarListProps: AllCarListProps) {
         updateFilteredCars(allCars)
     }, [allCars, nameFilter])
 
-    const columns: TableColumnsType<TableCarData> = [
+    const columnsData: TableColumnsType<TableCarData> = [
         {
             title: 'Name',
             key: 'name',
@@ -355,7 +360,6 @@ export function AllCarsList(allCarListProps: AllCarListProps) {
                 </>
             },
             sorter: (a, b, sortOrder) => defaultTextSorter(a.name, b.name, sortOrder),
-            defaultSortOrder: 'ascend',
             width: 420,
             ellipsis: true
         },
@@ -509,6 +513,8 @@ export function AllCarsList(allCarListProps: AllCarListProps) {
         },
     ]
 
+    const columns: TableColumnsType<TableCarData> = columnsData.map(column => { return { ...column, sortOrder: sortedInfo.columnKey === column.key ? sortedInfo.order : null } })
+
     const allSelectableColumnKeys: Key[] = columns.filter((column) => { return column.fixed == null || column.fixed == false }).map((column) => { return column.key ?? '' })
     const [selectedColumnKeys, setSelectedColumnKeys] = useState<Key[]>(allSelectableColumnKeys)
 
@@ -518,6 +524,14 @@ export function AllCarsList(allCarListProps: AllCarListProps) {
             : selectedColumnKeys.filter((c) => c !== columnKey);
         setSelectedColumnKeys(nextSelectedColumns);
     };
+
+    const handleTableChange = (pagination: TablePaginationConfig, filters: Record<string, FilterValue | null>, sorter: SorterResult<TableCarData> | SorterResult<TableCarData>[]) => {
+        const sortData = sorter instanceof Array ? sorter[0] : sorter
+        setSortedInfo({
+            columnKey: sortData?.columnKey,
+            order: sortData?.order
+        })
+    }
 
     const capitalize = (text: string): string => {
         return text.charAt(0).toUpperCase() + text.slice(1);
@@ -605,6 +619,7 @@ export function AllCarsList(allCarListProps: AllCarListProps) {
                     showSorterTooltip={false}
                     pagination={false}
                     size='small'
+                    onChange={handleTableChange}
                 />
             </ConfigProvider>
         </Flex>
