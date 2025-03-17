@@ -369,12 +369,8 @@ export function AllCarsList(allCarListProps: AllCarListProps) {
             fixed: true,
             render: (_value, record) => {
                 function imagePanel(images: string[]) {
-                    return <Image.PreviewGroup
-                        preview={{
-                            onChange: (current, prev) => console.log(`current index: ${current}, prev index: ${prev}`),
-                        }}
-                    >
-                        {images.map(image => <Image width={100} src={image} fallback='Error' />)}
+                    return <Image.PreviewGroup>
+                        {images.map(image => <Image width={100} src={image} fallback='Error' key={image} />)}
                     </Image.PreviewGroup>
                 }
                 function imagesPreview(images: string[]) {
