@@ -6,46 +6,26 @@ import {
     TableOutlined,
     UngroupOutlined,
 } from '@ant-design/icons';
-import { Button, ConfigProvider, Flex, Image, Input, Popover, Radio, RadioChangeEvent, Table, TableColumnsType, TableProps, Tag, theme, Tooltip, Typography } from "antd";
+import { Button, ConfigProvider, Flex, Image, Input, Popover, Radio, RadioChangeEvent, Table, TableColumnsType, Tag, theme, Tooltip, Typography } from "antd";
 import { FilterValue, SorterResult, SortOrder, TablePaginationConfig } from 'antd/es/table/interface';
 import { RenderedCell } from 'rc-table/lib/interface';
 import React, { Key, useEffect, useState } from "react";
 import { CarModel } from "../common/Types";
+import { TableCarData } from './ListAllPage';
 
 type AllCarListProps = {
     allCars: CarModel[],
-    loading: boolean
+    loading: boolean,
+    sortedInfo: SorterResult<TableCarData>,
+    setSortedInfo: React.Dispatch<React.SetStateAction<SorterResult<TableCarData>>>
 }
-
-type TableCarData = {
-    key: React.ReactNode,
-    name: string,
-    city?: string,
-    make?: string,
-    model?: string,
-    variant?: string,
-    url?: string,
-    imageUrls?: string[],
-    year: (number | null)[],
-    price: (number | null)[],
-    mileage: (number | null)[],
-    power: (number | null)[],
-    torque: (number | null)[],
-    displacement: (number | null)[],
-    length: (number | null)[],
-    width: (number | null)[],
-    height: (number | null)[],
-    wheelbase: (number | null)[],
-    children?: TableCarData[]
-}
-
-type GetSingle<T> = T extends (infer U)[] ? U : never;
-type Sort = GetSingle<Parameters<NonNullable<TableProps<TableCarData>['onChange']>>[2]>;
 
 export function AllCarsList(allCarListProps: AllCarListProps) {
     const {
         allCars,
-        loading
+        loading,
+        sortedInfo,
+        setSortedInfo
     } = allCarListProps
 
     const { Text } = Typography;
@@ -60,7 +40,6 @@ export function AllCarsList(allCarListProps: AllCarListProps) {
     const [nameFilter, setNameFilter] = useState<string>('')
     const [isAscend, setAscend] = useState<boolean>(true)
     const [showColumnSelector, setShowColumnSelector] = useState<boolean>(false)
-    const [sortedInfo, setSortedInfo] = useState<Sort>({});
 
 
     const isList = (): boolean => {

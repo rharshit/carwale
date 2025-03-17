@@ -1,4 +1,4 @@
-import { Flex, theme } from 'antd';
+import { Flex, TableProps, theme } from 'antd';
 import React, { useState } from 'react';
 import { post } from '../../../service/api';
 import { CarModel } from '../common/Types';
@@ -14,6 +14,31 @@ export interface AllCarsResponse {
     loadMore: boolean
 }
 
+export type TableCarData = {
+    key: React.ReactNode,
+    name: string,
+    city?: string,
+    make?: string,
+    model?: string,
+    variant?: string,
+    url?: string,
+    imageUrls?: string[],
+    year: (number | null)[],
+    price: (number | null)[],
+    mileage: (number | null)[],
+    power: (number | null)[],
+    torque: (number | null)[],
+    displacement: (number | null)[],
+    length: (number | null)[],
+    width: (number | null)[],
+    height: (number | null)[],
+    wheelbase: (number | null)[],
+    children?: TableCarData[]
+}
+
+type GetSingle<T> = T extends (infer U)[] ? U : never;
+export type TableCarSort = GetSingle<Parameters<NonNullable<TableProps<TableCarData>['onChange']>>[2]>;
+
 const ListAllPage: React.FC = () => {
 
     const {
@@ -22,6 +47,7 @@ const ListAllPage: React.FC = () => {
 
     const [isApplyingFilter, setApplyingFilter] = useState<boolean>(false)
     const [isFilterApplied, setFilterApplied] = useState<boolean>(false)
+    const [sortedInfo, setSortedInfo] = useState<TableCarSort>({});
 
     const [allCars, setAllCars] = useState<CarModel[]>([])
 
@@ -78,6 +104,8 @@ const ListAllPage: React.FC = () => {
                 <AllCarsList
                     allCars={allCars}
                     loading={isApplyingFilter}
+                    sortedInfo={sortedInfo}
+                    setSortedInfo={setSortedInfo}
                 />
             </Flex>
         </>
